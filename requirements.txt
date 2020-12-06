@@ -1,0 +1,8 @@
+
+# todo: see
+# https://blog.jcharistech.com/2020/11/02/how-to-create-requirements-txt-file-in-python/
+
+# abc: abstract base class module
+# see: https://docs.python.org/3/library/abc.html
+
+# pytorch 1.7.0
