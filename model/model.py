@@ -12,24 +12,26 @@ class NSRRFeatureExtractionModel(BaseModel):
     """
     def __init__(self):
         super(NSRRFeatureExtractionModel, self).__init__()
+        kernel_size = 3
+        # Adding padding here so that we do not lose width or height because of the convolutions.
+        # The input and output must have the same image dimensions so that we may concatenate them
+        padding = 1
         process_seq = nn.Sequential(
-            nn.Conv2d(4, 32, kernel_size=3),
+            nn.Conv2d(4, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=3),
+            nn.Conv2d(32, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
-            nn.Conv2d(32, 8, kernel_size=3),
+            nn.Conv2d(32, 8, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
         )
         self.add_module("process_sequential", process_seq)
 
-    def forward(self, img_colour: torch.Tensor, img_depth: torch.Tensor) -> torch.Tensor:
-        # From a 3-channel image and a 1-channel image, we construct a 4-channel input for our model.
-        print(img_colour.shape)
-        print(img_depth.shape)
-        x = torch.cat((img_colour, img_depth), 1)
-        x_processed = self.process_sequetial(x)
+    def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
+        # From each 3-channel image and 1-channel image, we construct a 4-channel input for our model.
+        x = torch.cat((colour_images, depth_images), 1)
+        x_processed = self.process_sequential(x)
         # We concatenate the original input that 'skipped' the network.
-        x = torch.cat((x, x_processed), 0)
+        x = torch.cat((x, x_processed), 1)
         return x
 
 
@@ -55,7 +57,7 @@ class LayerOutputModelDecorator(BaseModel):
         for name, module in self.model.named_children():
             if self.layer_predicate(name, module):
                 module.register_forward_hook(self.layer_forward_func(len(self.output_layers)))
-                self.output_layers.append(None)
+                self.output_layers.append(torch.Tensor())
 
     def forward(self, x) -> List[torch.Tensor]:
         self.model(x)

@@ -36,10 +36,12 @@ def unit_test_feature_extraction(img_view: Image, img_depth: Image):
     trans = tf.Compose([tf.ToTensor()])
     img_view = trans(img_view)
     img_depth = trans(img_depth)
+    img_view.unsqueeze_(0)
+    img_depth.unsqueeze_(0)
     feature_model = NSRRFeatureExtractionModel()
 
     feat = feature_model.forward(img_view, img_depth)
-    print(feat)
+    print("Features shape: ", feat.shape)
 
 
 if __name__ == '__main__':
@@ -56,5 +58,5 @@ if __name__ == '__main__':
     img_depth = img_depth.convert(mode="L")
     img_motion = Image.open(os.path.join(args.directory, "Motion", args.filename))
 
-    unit_test_loss(img_view)
-    # unit_test_feature_extraction(img_view, img_depth)
+    # unit_test_loss(img_view)
+    unit_test_feature_extraction(img_view, img_depth)
