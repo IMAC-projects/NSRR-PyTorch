@@ -1,2 +1,2 @@
 
-from .model import LayerOutputModelDecorator
+from .model import *
