@@ -26,8 +26,7 @@ class MnistModel(BaseModel):
 
 class LayerOutputModelDecorator(BaseModel):
     """
-
-    Requires that the model's children modules be iterable!
+    A Decorator for a Model to output the output from an arbitrary set of layers.
     """
     def __init__(self, model: nn.Module, layer_predicate: Callable[[str, nn.Module], bool]):
         super(LayerOutputModelDecorator, self).__init__()
@@ -53,7 +52,3 @@ class LayerOutputModelDecorator(BaseModel):
         self.model(x)
         return self.output_layers
 
-    ##
-    # Init
-    # model = torchvision.models.vgg16(pretrained=True, progress=True)
-    # model.eval()

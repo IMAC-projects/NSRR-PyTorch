@@ -5,6 +5,29 @@ from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
+import torchvision
+import torch.nn as nn
+from model import LayerOutputModelDecorator
+
+from typing import List
+
+class PerceptualLossManager:
+    # Init
+    vgg_model = torchvision.models.vgg16(pretrained=True, progress=True)
+    vgg_model.eval()
+    """ 
+        Feature Reconstruction Loss 
+        - needs output from each convolution layer.
+    """
+    layer_predicate = lambda name, module: type(module) == nn.Conv2d
+    lom = LayerOutputModelDecorator(vgg_model.features, layer_predicate)
+
+    """
+    Returns the list of output of x on the pre-trained VGG16 model for each convolution layer.
+    """
+    @classmethod
+    def get_vgg16_conv_layers_output(cls, x: torch.Tensor)-> List[torch.Tensor]:
+        return cls.lom.forward(x)
 
 def ensure_dir(dirname):
     dirname = Path(dirname)
@@ -65,3 +88,4 @@ class MetricTracker:
 
     def result(self):
         return dict(self._data.average)
+
