@@ -11,7 +11,7 @@ def nsrr_loss(output: np.ndarray, target: np.ndarray) -> float:
     # todo
     pass
 
-class VGGLoss:
+class VGG16PartialModel:
     """
     An implementation of the image perceptual losses defined in:
 
@@ -24,7 +24,7 @@ style transfer and super-resolution. In European Conference on Computer Vision.
 
     ##
     # Init
-    model = torchvision.models.vgg16(pretrained=True, progress=True)
-    model.eval()
+    # model = torchvision.models.vgg16(pretrained=True, progress=True)
+    # model.eval()
 
 

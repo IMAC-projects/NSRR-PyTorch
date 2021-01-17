@@ -1,7 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5e1a6576-766a-489b-bd62-01d55c17d48d" name="Default Changelist" comment="" />
+    <list default="true" id="5e1a6576-766a-489b-bd62-01d55c17d48d" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/10.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/11.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/12.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/13.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/14.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/15.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/17.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/18.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/19.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/20.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/21.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/22.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/23.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/24.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/25.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/26.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/27.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/28.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/29.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/3.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/30.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/31.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/6.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/7.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Depth/9.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/10.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/11.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/12.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/13.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/14.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/15.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/17.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/18.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/19.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/20.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/21.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/22.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/23.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/24.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/25.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/26.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/27.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/28.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/29.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/3.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/30.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/31.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/6.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/7.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/Motion/9.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/10.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/11.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/12.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/13.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/14.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/15.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/17.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/18.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/19.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/20.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/21.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/22.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/23.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/24.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/25.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/26.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/27.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/28.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/29.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/3.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/30.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/31.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/6.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/7.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/20_11_20_092547/View/9.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/loss.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,11 +127,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../imac3_td_cvav" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/debug.py" />
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Python" />
   </component>
   <component name="RunManager">
-    <configuration name="Unnamed" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="debug" type="PythonConfigurationType" factoryName="Python">
       <module name="NSRR-PyTorch" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -39,13 +139,13 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/debug.py" />
+      <option name="PARAMETERS" value="--input ./data/debug/View/2.png" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -86,5 +186,19 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/model/model.py</url>
+          <line>16</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/NSRR_PyTorch$debug.coverage" NAME="debug Coverage Results" MODIFIED="1610902767896" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
