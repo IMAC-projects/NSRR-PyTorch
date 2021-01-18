@@ -1,13 +1,18 @@
 
 import os
 import argparse
+
+import matplotlib.pyplot as plt
+
+from PIL import Image
 import torchvision
 import torch.autograd
 import torch.nn as nn
 import torchvision.transforms as tf
-from PIL import Image
+
 
 from model import LayerOutputModelDecorator, NSRRFeatureExtractionModel
+from utils import upsample_zero_2d, Timer
 
 
 def unit_test_loss(img_view: Image):
@@ -26,10 +31,14 @@ def unit_test_loss(img_view: Image):
     img_loss.unsqueeze_(0)
     img_loss = torch.autograd.Variable(img_loss)
 
-    output_layers = lom.forward(img_loss)
-    print("Output of Conv2 layers: ")
+    with Timer() as timer:
+        output_layers = lom.forward(img_loss)
+    print('(Perceptual loss) Execution time: ', timer.interval, ' s')
+
+    print("(Perceptual loss) Output of Conv2 layers: ")
     for output in output_layers:
         print(output.shape)
+
 
 def unit_test_feature_extraction(img_view: Image, img_depth: Image):
     ## Feature extraction
@@ -41,7 +50,31 @@ def unit_test_feature_extraction(img_view: Image, img_depth: Image):
     feature_model = NSRRFeatureExtractionModel()
 
     feat = feature_model.forward(img_view, img_depth)
-    print("Features shape: ", feat.shape)
+    # some visualisation, not very useful since they do not represent a RGB-image, but well.
+    trans = tf.ToPILImage()
+    plt.imshow(trans(feat[0]))
+    plt.draw()
+    plt.pause(0.01)
+
+
+def unit_test_zero_upsampling(img_view: Image):
+    ## Zero-upsampling
+    trans = tf.Compose([tf.ToTensor()])
+    img_view = trans(img_view)
+    img_view.unsqueeze_(0)
+
+    scale_factor = (2.0, 2.0)
+
+    with Timer() as timer:
+        img_view_upsampled = upsample_zero_2d(img_view, scale_factor=scale_factor)
+    print('(Zero-upsampling) Execution time: ', timer.interval, ' s')
+
+    print(img_view_upsampled.size())
+    trans = tf.ToPILImage()
+    plt.imshow(trans(img_view_upsampled[0]))
+    plt.draw()
+    plt.pause(0.01)
+
 
 
 if __name__ == '__main__':
@@ -59,4 +92,5 @@ if __name__ == '__main__':
     img_motion = Image.open(os.path.join(args.directory, "Motion", args.filename))
 
     # unit_test_loss(img_view)
-    unit_test_feature_extraction(img_view, img_depth)
+    # unit_test_feature_extraction(img_view, img_depth)
+    unit_test_zero_upsampling(img_view)

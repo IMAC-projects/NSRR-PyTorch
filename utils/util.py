@@ -1,12 +1,51 @@
 import json
-import torch
 import pandas as pd
 from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
+import time
+import torch
+import torchvision.transforms.functional as F
+import numpy as np
+
 from threading import Lock, Thread
 
+
+def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch.Tensor:
+    """
+    IMPORTANT: we only support integer scaling factors for now!!
+    """
+    # input shape is: batch x channels x height x width
+    # output shape is:
+    if size is not None and scale_factor is not None:
+        raise ValueError("Should either define both size and scale_factor!")
+    if size is None and scale_factor is None:
+        raise ValueError("Should either define size or scale_factor!")
+    input_size = torch.tensor(input.size(), dtype=torch.int)
+    input_image_size = input_size[2:]
+    data_size = input_size[:2]
+    if size is None:
+        # Get the last two dimensions -> height x width
+        # compare to given scale factor
+        b_ = np.asarray(scale_factor)
+        b = torch.tensor(b_)
+        # check that the dimensions of the tuples match.
+        if len(input_image_size) != len(b):
+            raise ValueError("scale_factor should match input size!")
+        output_image_size = (input_image_size * b).type(torch.int)
+    else:
+        output_image_size = size
+    if scale_factor is None:
+        scale_factor = output_image_size / input_image_size
+    else:
+        scale_factor = torch.tensor(np.asarray(scale_factor), dtype=torch.int)
+    ##
+    output_size = torch.cat((data_size, output_image_size))
+    output = torch.zeros(tuple(output_size.tolist()))
+    ##
+    output[:, :, ::scale_factor[0], ::scale_factor[1]] = input
+    return output
 
 
 class SingletonPattern(type):
@@ -23,7 +62,29 @@ class SingletonPattern(type):
                 cls._instances[cls] = instance
         return cls._instances[cls]
 
+class Timer:
+    """
+    see: https://saladtomatonion.com/blog/2014/12/16/mesurer-le-temps-dexecution-de-code-en-python/
+    """
+    def __init__(self):
+        self.start_time = None
+        self.interval = None
 
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
+    def start(self):
+        self.interval = None
+        self.start_time = time.time()
+
+    def stop(self):
+        if self.start_time is not None:
+            self.interval = time.time() - self.start_time
+            self.start_time = None
 
 def ensure_dir(dirname):
     dirname = Path(dirname)
@@ -84,4 +145,3 @@ class MetricTracker:
 
     def result(self):
         return dict(self._data.average)
-
