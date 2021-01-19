@@ -6,10 +6,59 @@ from collections import OrderedDict
 
 import time
 import torch
-import torchvision.transforms.functional as F
+import torch.nn.functional as F
 import numpy as np
 
 from threading import Lock, Thread
+
+from pytorch_colors import rgb_to_hsv
+
+def backward_warp_motion(input: torch.Tensor, motion: torch.Tensor) -> torch.Tensor:
+    # see: https://discuss.pytorch.org/t/image-warping-for-backward-flow-using-forward-flow-matrix-optical-flow/99298
+    # input image is: [batch, channel, height, width]
+    index_batch, number_channels, height, width = input.size()
+    grid_x = torch.arange(width).view(1, -1).repeat(height, 1)
+    grid_y = torch.arange(height).view(-1, 1).repeat(1, width)
+    grid_x = grid_x.view(1, 1, height, width).repeat(index_batch, 1, 1, 1)
+    grid_y = grid_y.view(1, 1, height, width).repeat(index_batch, 1, 1, 1)
+    ##
+    grid = torch.cat((grid_x, grid_y), 1).float()
+    # grid is: [batch, channel (2), height, width]
+    vgrid = grid + motion
+    # Grid values must be normalised positions in [-1, 1]
+    vgrid_x = vgrid[:, 0, :, :]
+    vgrid_y = vgrid[:, 1, :, :]
+    vgrid[:, 0, :, :] = (vgrid_x / width) * 2.0 - 1.0
+    vgrid[:, 1, :, :] = (vgrid_y / height) * 2.0 - 1.0
+    # swapping grid dimensions in order to match the input of grid_sample.
+    # that is: [batch, output_height, output_width, grid_pos (2)]
+    print(vgrid.size())
+    vgrid = vgrid.permute((0, 2, 3, 1))
+    print(vgrid.size())
+    output = F.grid_sample(input, vgrid, mode='bilinear', align_corners=False)
+    return output
+
+
+def optical_flow_to_motion(rgb_flow: torch.Tensor, sensitivity: float = 0.5) -> torch.Tensor:
+    """
+    Returns motion vectors as a [batch, 2, height, width]
+    with [:, 0, :, :] the abscissa and [:, 1, :, :] the ordinate.
+    """
+    # flow is: batch x 3-channel x height x width
+    # todo: this function is extremely slow
+    # around 300ms on my machine
+    # with [1, 3, 1080, 1920] tensor: single 1920 x 1080 image...
+    hsv_flow = rgb_to_hsv(rgb_flow)
+    motion_length = hsv_flow[:, 2, :, :] / sensitivity
+    motion_angle = (hsv_flow[:, 0, :, :] - 0.5) * (2.0 * np.pi)
+    motion_x = - motion_length * torch.cos(motion_angle)
+    motion_y = - motion_length * torch.sin(motion_angle)
+    motion_x.unsqueeze_(1)
+    motion_y.unsqueeze_(1)
+    motion = torch.cat((motion_x, motion_y), dim=1)
+    # motion is: batch x 2-channel x height x width
+    print(motion.size())
+    return motion
 
 
 def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch.Tensor:
@@ -44,6 +93,7 @@ def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch
     output_size = torch.cat((data_size, output_image_size))
     output = torch.zeros(tuple(output_size.tolist()))
     ##
+    # todo: use output.view(...) instead.
     output[:, :, ::scale_factor[0], ::scale_factor[1]] = input
     return output
 
