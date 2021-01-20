@@ -18,7 +18,7 @@ class NSRRDataLoader(BaseDataLoader):
     """
     depth_dirname = "Depth"
     motion_dirname = "Motion"
-    view_dirname  = "View"
+    view_dirname = "View"
 
     def __init__(self,
                  root_dir: str,

@@ -13,10 +13,11 @@ from threading import Lock, Thread
 
 from pytorch_colors import rgb_to_hsv
 
-def backward_warp_motion(input: torch.Tensor, motion: torch.Tensor) -> torch.Tensor:
+
+def backward_warp_motion(img: torch.Tensor, motion: torch.Tensor) -> torch.Tensor:
     # see: https://discuss.pytorch.org/t/image-warping-for-backward-flow-using-forward-flow-matrix-optical-flow/99298
     # input image is: [batch, channel, height, width]
-    index_batch, number_channels, height, width = input.size()
+    index_batch, number_channels, height, width = img.size()
     grid_x = torch.arange(width).view(1, -1).repeat(height, 1)
     grid_y = torch.arange(height).view(-1, 1).repeat(1, width)
     grid_x = grid_x.view(1, 1, height, width).repeat(index_batch, 1, 1, 1)
@@ -32,10 +33,8 @@ def backward_warp_motion(input: torch.Tensor, motion: torch.Tensor) -> torch.Ten
     vgrid[:, 1, :, :] = (vgrid_y / height) * 2.0 - 1.0
     # swapping grid dimensions in order to match the input of grid_sample.
     # that is: [batch, output_height, output_width, grid_pos (2)]
-    print(vgrid.size())
     vgrid = vgrid.permute((0, 2, 3, 1))
-    print(vgrid.size())
-    output = F.grid_sample(input, vgrid, mode='bilinear', align_corners=False)
+    output = F.grid_sample(img, vgrid, mode='bilinear', align_corners=False)
     return output
 
 
@@ -57,11 +56,10 @@ def optical_flow_to_motion(rgb_flow: torch.Tensor, sensitivity: float = 0.5) -> 
     motion_y.unsqueeze_(1)
     motion = torch.cat((motion_x, motion_y), dim=1)
     # motion is: batch x 2-channel x height x width
-    print(motion.size())
     return motion
 
 
-def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch.Tensor:
+def upsample_zero_2d(img: torch.Tensor, size=None, scale_factor=None) -> torch.Tensor:
     """
     IMPORTANT: we only support integer scaling factors for now!!
     """
@@ -71,7 +69,7 @@ def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch
         raise ValueError("Should either define both size and scale_factor!")
     if size is None and scale_factor is None:
         raise ValueError("Should either define size or scale_factor!")
-    input_size = torch.tensor(input.size(), dtype=torch.int)
+    input_size = torch.tensor(img.size(), dtype=torch.int)
     input_image_size = input_size[2:]
     data_size = input_size[:2]
     if size is None:
@@ -94,7 +92,7 @@ def upsample_zero_2d(input: torch.Tensor, size=None, scale_factor=None) -> torch
     output = torch.zeros(tuple(output_size.tolist()))
     ##
     # todo: use output.view(...) instead.
-    output[:, :, ::scale_factor[0], ::scale_factor[1]] = input
+    output[:, :, ::scale_factor[0], ::scale_factor[1]] = img
     return output
 
 
