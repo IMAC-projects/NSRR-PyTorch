@@ -25,20 +25,18 @@ class NSRRDataLoader(BaseDataLoader):
                  batch_size: int,
                  suffle: bool = True,
                  validation_split: float = 0.0,
-                 num_workers: int = 1,
-                 training: bool =True
+                 num_workers: int = 1
                  ):
         dataset = NSRRDataset(root_dir,
                               NSRRDataLoader.view_dirname,
                               NSRRDataLoader.depth_dirname,
                               NSRRDataLoader.motion_dirname
                                )
-        super(NSRRDataLoader, self).__init__(dataset,
-                                             batch_size,
-                                             suffle,
-                                             validation_split,
-                                             num_workers,
-                                             training
+        super(NSRRDataLoader, self).__init__(dataset=dataset,
+                                             batch_size=batch_size,
+                                             shuffle=suffle,
+                                             validation_split=validation_split,
+                                             num_workers=num_workers,
                                              )
 
 
@@ -54,7 +52,7 @@ class NSRRDataset(Dataset):
                  transform: nn.Module = None,
                  downscale_factor: Tuple[int, int] = (2.0, 2.0)
                  ):
-        super.__init__()
+        super(NSRRDataset, self).__init__()
         self.root_dir = root_dir
         self.view_dirname = view_dirname
         self.depth_dirname = depth_dirname
@@ -92,7 +90,7 @@ class NSRRDataset(Dataset):
         img_depth = trans(Image.open(depth_path).convert(mode="L"))
         img_flow = trans(Image.open(motion_path))
 
-        return ((img_view, img_depth, img_flow), img_view_truth)
+        return img_view, img_depth, img_flow, img_view_truth
 
     def __len__(self) -> int:
         return len(self.view_listdir)

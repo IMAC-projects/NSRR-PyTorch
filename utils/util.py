@@ -45,7 +45,7 @@ def optical_flow_to_motion(rgb_flow: torch.Tensor, sensitivity: float = 0.5) -> 
     with [:, 0, :, :] the abscissa and [:, 1, :, :] the ordinate.
     """
     # flow is: batch x 3-channel x height x width
-    # todo: this function is extremely slow
+    # todo: rgb_to_hsv  is extremely slow (from pytorch_color)
     # around 300ms on my machine
     # with [1, 3, 1080, 1920] tensor: single 1920 x 1080 image...
     hsv_flow = rgb_to_hsv(rgb_flow)

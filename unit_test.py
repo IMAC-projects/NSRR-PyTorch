@@ -45,8 +45,12 @@ def unit_test_feature_extraction(img_view: torch.Tensor, img_depth: torch.Tensor
     ## Feature extraction
     feature_model = NSRRFeatureExtractionModel()
 
-    feat = feature_model.forward(img_view, img_depth)
+
+    with Timer() as timer:
+        feat = feature_model.forward(img_view, img_depth)
+    print('(Feature extraction) Execution time: ', timer.interval, ' s')
     # some visualisation, not very useful since they do not represent a RGB-image, but well.
+
     trans = tf.ToPILImage()
     plt.imshow(trans(feat[0]))
     plt.draw()
@@ -87,6 +91,22 @@ def unit_test_backward_warping(img_view: torch.Tensor, img_flow: torch.Tensor):
     plt.draw()
     plt.pause(0.01)
 
+def main(args):
+    batch_size = 4
+    loader = NSRRDataLoader(args.directory, batch_size=batch_size)
+    # for x_view, x_depth, x_flow, y_truth in enumerate(loader):
+    # print(y_truth)
+
+    for batch_idx, x in enumerate(loader):
+        x_view, x_depth, x_flow = x[:3]
+        print(f"Batch #{batch_idx}, input size: {x_view.size()}")
+        y_truth = x[3]
+
+        # unit_test_backward_warping(x_view, x_flow)
+        # unit_test_loss(x_view)
+        # unit_test_feature_extraction(x_view, x_depth)
+        # unit_test_zero_upsampling(x_view)
+
 
 
 if __name__ == '__main__':
@@ -97,31 +117,5 @@ if __name__ == '__main__':
                         help='shared name of the view, depth, and motion files.')
 
     args = parser.parse_args()
+    main(args)
 
-    # todo: use the DataLoader
-    """
-    batch_size = 2
-    loader = NSRRDataLoader(args.directory, batch_size=batch_size)
-    for y_truth, x_view, x_depth, x_flow in enumerate(loader):
-        print(y_truth.size())
-    """
-
-    img_view = Image.open(os.path.join(args.directory, "View", args.filename))
-    img_depth = Image.open(os.path.join(args.directory, "Depth", args.filename))
-    # depth data is in a single-channel image.
-    img_depth = img_depth.convert(mode="L")
-    img_flow = Image.open(os.path.join(args.directory, "Motion", args.filename))
-
-    trans = tf.Compose([tf.ToTensor()])
-
-    img_view = trans(img_view)
-    img_depth = trans(img_depth)
-    img_flow = trans(img_flow)
-    img_view.unsqueeze_(0)
-    img_depth.unsqueeze_(0)
-    img_flow.unsqueeze_(0)
-
-    # unit_test_loss(img_view)
-    # unit_test_feature_extraction(img_view, img_depth)
-    # unit_test_zero_upsampling(img_view)
-    unit_test_backward_warping(img_view, img_flow)
