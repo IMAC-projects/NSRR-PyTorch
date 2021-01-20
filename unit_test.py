@@ -13,6 +13,8 @@ from model import LayerOutputModelDecorator, NSRRFeatureExtractionModel
 from utils import Timer, upsample_zero_2d, optical_flow_to_motion, backward_warp_motion
 from data_loader import NSRRDataLoader
 
+from typing import Tuple
+
 
 class UnitTest:
 
@@ -40,6 +42,7 @@ class UnitTest:
         for output in output_layers:
             print("size: ", output.size())
 
+
     @staticmethod
     def feature_extraction(img_view: torch.Tensor, img_depth: torch.Tensor) -> None:
         ## Feature extraction
@@ -55,11 +58,10 @@ class UnitTest:
         plt.draw()
         plt.pause(0.01)
 
-    @staticmethod
-    def zero_upsampling(img_view: torch.Tensor) -> None:
-        ## Zero-upsampling
-        scale_factor = (2.0, 2.0)
 
+    @staticmethod
+    def zero_upsampling(img_view: torch.Tensor, scale_factor: Tuple[int, int]) -> None:
+        ## Zero-upsampling
         with Timer() as timer:
             img_view_upsampled = upsample_zero_2d(img_view, scale_factor=scale_factor)
         print('(Zero-upsampling) Execution time: ', timer.interval, ' s')
@@ -69,10 +71,10 @@ class UnitTest:
         plt.draw()
         plt.pause(0.01)
 
+
     @staticmethod
-    def backward_warping(img_view: torch.Tensor, img_flow: torch.Tensor) -> None:
+    def backward_warping(img_view: torch.Tensor, img_flow: torch.Tensor, scale_factor: Tuple[int, int]) -> None:
         ## First, zero-upsampling
-        scale_factor = (2.0, 2.0)
         img_view_upsampled = upsample_zero_2d(img_view, scale_factor=scale_factor)
         # According to the article, bilinear interpolation of optical flow gives accurate enough results.
         img_flow_upsampled = F.interpolate(img_flow, scale_factor=scale_factor, mode='bilinear', align_corners=False)
@@ -89,8 +91,9 @@ class UnitTest:
         plt.draw()
         plt.pause(0.01)
 
+
     @staticmethod
-    def dataloader_iteration(root_dir: str, batch_size: int) -> NSRRDataLoader:
+    def dataloader_iteration(root_dir: str, batch_size: int) -> None:
         loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size)
 
         for batch_idx, x in enumerate(loader):
@@ -102,18 +105,22 @@ class UnitTest:
             print(f"  flow:  {x_flow.size()}")
             print(f"  truth: {y_truth.size()}")
 
-        return loader
 
 
 def main(args):
 
-    loader = UnitTest.dataloader_iteration(args.directory, 16)
+    downscale_factor = (args.downscale, args.downscale)
+    root_dir = args.directory
+    batch_size = 8
+
+    # UnitTest.dataloader_iteration(root_dir, batch_size)
+    loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size, downscale_factor=downscale_factor)
     # get a single batch
     x_view, x_depth, x_flow, _ = next(iter(loader))
-    UnitTest.backward_warping(x_view, x_flow)
+    UnitTest.backward_warping(x_view, x_flow, downscale_factor)
     # UnitTest.nsrr_loss(x_view)
     UnitTest.feature_extraction(x_view, x_depth)
-    UnitTest.zero_upsampling(x_view)
+    UnitTest.zero_upsampling(x_view, downscale_factor)
 
 
 if __name__ == '__main__':
@@ -122,6 +129,8 @@ if __name__ == '__main__':
                       help='path to input directory.')
     parser.add_argument('-n', '--filename', required=True, type=str,
                         help='shared name of the view, depth, and optical flow image files.')
+    parser.add_argument('--downscale', required=False, type=int, default=2,
+                        help='downscale factor for input images.')
 
     args = parser.parse_args()
     main(args)

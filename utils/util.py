@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from threading import Lock, Thread
+from typing import Tuple
 
 from pytorch_colors import rgb_to_hsv
 
@@ -94,6 +95,22 @@ def upsample_zero_2d(img: torch.Tensor, size=None, scale_factor=None) -> torch.T
     # todo: use output.view(...) instead.
     output[:, :, ::scale_factor[0], ::scale_factor[1]] = img
     return output
+
+
+# bit dirty.
+def get_scale_factor(a: torch.Tensor, b: torch.Tensor) -> Tuple:
+    """
+    Computes scaling factor (s_h, s_w) from a to b two 4D or (s_d, s_h, s_w) from 5D tensors of images, returned as a tuple of floats
+    """
+    # bit dirty.
+    return tuple(np.asarray(b.size()[2:]) / np.asarray(a.size()[2:]).astype(int).tolist())
+
+
+def get_downscaled_size(x: torch.Tensor, downscale_factor: Tuple) -> Tuple:
+    """
+    Computes (h, w) size of a 4D or (d, h, w) of 5D tensor of images downscaled by a scaling factor (tuple of int).
+    """
+    return tuple((np.asarray(x.size()[2:]) / np.asarray(downscale_factor)).astype(int).tolist())
 
 
 class SingletonPattern(type):
