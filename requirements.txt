@@ -1,8 +1,9 @@
+torch>=1.1
+torchvision~=0.8.1
+numpy~=1.19.2
+tqdm~=4.54.0
+pandas~=1.2.0
 
-# todo: see
-# https://blog.jcharistech.com/2020/11/02/how-to-create-requirements-txt-file-in-python/
-
-# abc: abstract base class module
-# see: https://docs.python.org/3/library/abc.html
-
-# pytorch 1.7.0
+pillow~=8.0.1
+matplotlib~=3.3.2
+scikit-image~=0.17.2
