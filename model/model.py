@@ -28,9 +28,9 @@ class NSRRFeatureExtractionModel(BaseModel):
     def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
         # From each 3-channel image and 1-channel image, we construct a 4-channel input for our model.
         x = torch.cat((colour_images, depth_images), 1)
-        x_processed = self.process_sequential(x)
+        x_features = self.featuring(x)
         # We concatenate the original input that 'skipped' the network.
-        x = torch.cat((x, x_processed), 1)
+        x = torch.cat((x, x_features), 1)
         return x
 
 
