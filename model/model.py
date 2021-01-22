@@ -9,7 +9,6 @@ from typing import List, Callable, Any
 class NSRRFeatureExtractionModel(BaseModel):
     """
     """
-
     def __init__(self):
         super(NSRRFeatureExtractionModel, self).__init__()
         kernel_size = 3
@@ -24,7 +23,7 @@ class NSRRFeatureExtractionModel(BaseModel):
             nn.Conv2d(32, 8, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
         )
-        self.add_module("process_sequential", process_seq)
+        self.add_module("featuring", process_seq)
 
     def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
         # From each 3-channel image and 1-channel image, we construct a 4-channel input for our model.
@@ -33,6 +32,34 @@ class NSRRFeatureExtractionModel(BaseModel):
         # We concatenate the original input that 'skipped' the network.
         x = torch.cat((x, x_processed), 1)
         return x
+
+
+class NSRRFeatureReweightingModel(BaseModel):
+    """
+    """
+    def __init__(self):
+        super(NSRRFeatureReweightingModel, self).__init__()
+        # According to the paper, rescaling in [0, 10] after the final tanh activation
+        # gives accurate enough results.
+        self.scale = 10
+        kernel_size = 3
+        # Adding padding here so that we do not lose width or height because of the convolutions.
+        # The input and output must have the same image dimensions so that we may concatenate them
+        padding = 1
+        process_seq = nn.Sequential(
+            nn.Conv2d(4, 32, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(32, 4, kernel_size=kernel_size, padding=padding),
+            nn.Tanh(),
+            # todo: normalisation to [0, self.scale]
+        )
+        self.add_module("weighting", process_seq)
+
+    def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
+        # todo
+        pass
 
 
 class LayerOutputModelDecorator(BaseModel):
