@@ -58,22 +58,22 @@ class NSRRFeatureReweightingModel(BaseModel):
         )
         self.add_module("weighting", process_seq)
 
+    def mapRangeToRange(tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1):
+        return torch.div(torch.mul(torch.add(tensor, -in_min), out_max - out_min), (in_max - in_min) + out_min)
+
     def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
                 i2_rgbd_image: torch.Tensor, i3_rgbd_image: torch.Tensor,
                 i4_rgbd_image: torch.Tensor) -> torch.Tensor:
-
-        fromRangeToRange = lambda x, in_min = -1, in_max = 1, out_min = 0, out_max = self.scale: (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-
         # Generates a pixel-wise weighting map for the current and each previous frames.
         # TODO cache the results
         i0_wmap = self.weighting(i0_rgbd_image)
-        i0_wmap.apply_(fromRangeToRange)
+        i0_wmap = mapRangeToRange(i0_wmap)
         i1_wmap = self.weighting(i1_rgbd_image)
-        i1_wmap.apply_(fromRangeToRange)
+        i1_wmap = mapRangeToRange(i1_wmap)
         i2_wmap = self.weighting(i2_rgbd_image)
-        i2_wmap.apply_(fromRangeToRange)
+        i2_wmap = mapRangeToRange(i2_wmap)
         i3_wmap = self.weighting(i3_rgbd_image)
-        i3_wmap.apply_(fromRangeToRange)
+        i3_wmap = mapRangeToRange(i3_wmap)
 
         # Each weighting map is multiplied to all features of the corresponding previous frame.
         i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
