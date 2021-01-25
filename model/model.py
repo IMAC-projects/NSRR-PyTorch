@@ -60,16 +60,23 @@ class NSRRFeatureReweightingModel(BaseModel):
         self.add_module("weighting", process_seq)
 
     def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
-                i2_rgbd_image: torch.Tensor,
-                i3_rgbd_image: torch.Tensor,
+                i2_rgbd_image: torch.Tensor, i3_rgbd_image: torch.Tensor,
                 i4_rgbd_image: torch.Tensor) -> torch.Tensor:
-        # TODO might be a wrong interpretation of the paper. Furthermore possible to cache the results
+        # Generates a pixel-wise weighting map for the current and each previous frames.
+        # TODO cache the results
         i0_wmap = self.weighting(i0_rgbd_image)
         i1_wmap = self.weighting(i1_rgbd_image)
         i2_wmap = self.weighting(i2_rgbd_image)
         i3_wmap = self.weighting(i3_rgbd_image)
-        i4_wmap = self.weighting(i4_rgbd_image)
-        x = torch.mul(i0_wmap, i1_wmap, i2_wmap, i3_wmap, i4_wmap)
+
+        # Each weighting map is multiplied to all features of the corresponding previous frame.
+        i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
+        i2_wmap = torch.mul(i2_wmap, i3_rgbd_image)
+        i1_wmap = torch.mul(i1_wmap, i2_rgbd_image)
+        i0_wmap = torch.mul(i0_wmap, i1_rgbd_image)
+
+        # Weight multiply
+        x = torch.mul(i0_wmap, i1_wmap, i2_wmap, i3_wmap)
         return x
 
 
@@ -123,11 +130,17 @@ class NSRRReconstructionModel(BaseModel):
         self.add_module("decoder_1", decoder1)
 
     def forward(self, current_features: torch.Tensor, previous_features: torch.Tensor) -> torch.Tensor:
+        # Features of the current frame and the reweighted features
+        # of previous frames are concatenated
         x = torch.cat(current_features, previous_features)
+
+        # Cache result to handle 'skipped' connection for encoder 1 and 2
         x_encoder_1 = self.encoder_1(x)
         x_encoder_2 = self.encoder_1(x_encoder_1)
         x = self.center(x_encoder_2)
         x = self.decoder_2(x)
+
+        # We concatenate the original input that 'skipped' the network for encoder 1 and 2
         x = torch.cat(x, x_encoder_2)
         x = self.decoder_1(x)
         x = torch.cat(x, x_encoder_1)
