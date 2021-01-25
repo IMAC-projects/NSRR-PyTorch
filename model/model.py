@@ -95,9 +95,11 @@ class NSRRReconstructionModel(BaseModel):
         padding = 1
         kernel_size = 3
 
+        self.pool = nn.MaxPool2d(self.kernel_size, padding=self.padding, return_indices=True)
+        self.upsize = nn.MaxUnpool2d(self.kernel_size, padding=self.padding)
+
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
         # Encoder 1 is symmetrical to Decoder 1
-        # TODO check if there we need to explicitly declare a pooling operation at each encoder end step (same for upsize in decoder)
         encoder1 = nn.Sequential(
             nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
@@ -140,16 +142,28 @@ class NSRRReconstructionModel(BaseModel):
         # of previous frames are concatenated
         x = torch.cat(current_features, previous_features)
 
-        # Cache result to handle 'skipped' connection for encoder 1 and 2
+        # 1. Cache result to handle 'skipped' connection for encoder 1
         x_encoder_1 = self.encoder_1(x)
-        x_encoder_2 = self.encoder_1(x_encoder_1)
-        x = self.center(x_encoder_2)
-        x = self.decoder_2(x)
 
-        # We concatenate the original input that 'skipped' the network for encoder 1 and 2
+        # 2. Apply pooling to reduce image size and store indices for future upsizing
+        x, pool_1_indices = self.pool(x_encoder_1)
+
+        # Process with step 1. and 2.
+        x_encoder_2 = self.encoder_2(x)
+        x, pool_2_indices = self.pool(x_encoder_2)
+
+        # 3. Continue to run the model and upsize the image to progressively restore its original size
+        x = self.center(x_encoder_2)
+        x = self.upsize(x, pool_2_indices)
+        
+        # 4. We concatenate the original input that 'skipped' the network for encoder 1 and 2
         x = torch.cat(x, x_encoder_2)
-        x = self.decoder_1(x)
+
+        # Process with step 3. and 4.
+        x = self.decoder_2(x)
+        x = self.upsize(x, pool_1_indices)
         x = torch.cat(x, x_encoder_1)
+        x = self.decoder_1(x)
         return x
 
 
