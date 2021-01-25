@@ -153,7 +153,7 @@ class NSRRReconstructionModel(BaseModel):
         x, pool_2_indices = self.pool(x_encoder_2)
 
         # 3. Continue to run the model and upsize the image to progressively restore its original size
-        x = self.center(x_encoder_2)
+        x = self.center(x)
         x = self.upsize(x, pool_2_indices)
         
         # 4. We concatenate the original input that 'skipped' the network for encoder 1 and 2
