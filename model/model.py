@@ -67,13 +67,13 @@ class NSRRFeatureReweightingModel(BaseModel):
         # Generates a pixel-wise weighting map for the current and each previous frames.
         # TODO cache the results
         i0_wmap = self.weighting(i0_rgbd_image)
-        i0_wmap = mapRangeToRange(i0_wmap)
+        i0_wmap = mapRangeToRange(i0_wmap, -1, 1, 0, self.scale)
         i1_wmap = self.weighting(i1_rgbd_image)
-        i1_wmap = mapRangeToRange(i1_wmap)
+        i1_wmap = mapRangeToRange(i1_wmap, -1, 1, 0, self.scale)
         i2_wmap = self.weighting(i2_rgbd_image)
-        i2_wmap = mapRangeToRange(i2_wmap)
+        i2_wmap = mapRangeToRange(i2_wmap, -1, 1, 0, self.scale)
         i3_wmap = self.weighting(i3_rgbd_image)
-        i3_wmap = mapRangeToRange(i3_wmap)
+        i3_wmap = mapRangeToRange(i3_wmap, -1, 1, 0, self.scale)
 
         # Each weighting map is multiplied to all features of the corresponding previous frame.
         i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
