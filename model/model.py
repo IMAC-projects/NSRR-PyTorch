@@ -61,6 +61,43 @@ class NSRRFeatureReweightingModel(BaseModel):
         # todo
         pass
 
+class NSRRReconstructionModel(BaseModel):
+    """
+    """
+    def __init__(self):
+        # TODO check the padding and kernel_size
+        padding = 1
+        kernel_size = 3
+        # TODO how to handle the "skip connection" with a concat
+        # TODO what about the pooling ? and Upsize ?
+        process_seq = nn.Sequential(
+            nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=kernel_size, padding=padding),
+            nn.ReLU()
+            nn.Conv2d(128, 128, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(128, 64, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(32, 3, kernel_size=kernel_size, padding=padding),
+            nn.ReLU()
+        )
+        self.add_module("reconstruction", process_seq)
+
+    def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
+        # todo
+        pass
+
 
 class LayerOutputModelDecorator(BaseModel):
     """
