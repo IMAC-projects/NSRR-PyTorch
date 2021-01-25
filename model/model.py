@@ -65,38 +65,59 @@ class NSRRReconstructionModel(BaseModel):
     """
     """
     def __init__(self):
-        # TODO check the padding and kernel_size
+        super(NSRRReconstructionModel, self).__init__()
         padding = 1
         kernel_size = 3
-        # TODO how to handle the "skip connection" with a concat
-        # TODO what about the pooling ? and Upsize ?
-        process_seq = nn.Sequential(
+
+        # Split the network into 5 groups of 2 layers to apply concat operation at each stage
+        # Encoder 1 is symmetrical to Decoder 1
+        encoder1 = nn.Sequential(
             nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
+            nn.ReLU()
+        )
+        encoder2 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
+            nn.ReLU()
+        )
+        center = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
             nn.Conv2d(128, 128, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
+            nn.ReLU()
+        )
+        decoder2 = nn.Sequential(
             nn.Conv2d(128, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
+            nn.ReLU()
+        )
+        decoder1 = nn.Sequential(
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(32, 3, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
         )
-        self.add_module("reconstruction", process_seq)
 
-    def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
-        # todo
-        pass
+        self.add_module("encoder_1", encoder1)
+        self.add_module("encoder_2", encoder2)
+        self.add_module("center", center)
+        self.add_module("decoder_2", decoder2)
+        self.add_module("decoder_1", decoder1)
+
+    def forward(self, current_features: torch.Tensor, previous_features: torch.Tensor) -> torch.Tensor:
+        x = torch.cat(current_features, previous_features)
+        x_encoder_1 = self.encoder_1(x)
+        x_encoder_2 = self.encoder_1(x_encoder_1)
+        x = self.center(x_encoder_2)
+        x = self.decoder_2(x)
+        x = torch.cat(x, x_encoder_2)
+        x = self.decoder_1(x)
+        x = torch.cat(x, x_encoder_1)
+        return x
 
 
 class LayerOutputModelDecorator(BaseModel):
