@@ -9,6 +9,7 @@ from typing import List, Callable, Any
 class NSRRFeatureExtractionModel(BaseModel):
     """
     """
+
     def __init__(self):
         super(NSRRFeatureExtractionModel, self).__init__()
         kernel_size = 3
@@ -37,6 +38,7 @@ class NSRRFeatureExtractionModel(BaseModel):
 class NSRRFeatureReweightingModel(BaseModel):
     """
     """
+
     def __init__(self):
         super(NSRRFeatureReweightingModel, self).__init__()
         # According to the paper, rescaling in [0, 10] after the final tanh activation
@@ -53,17 +55,28 @@ class NSRRFeatureReweightingModel(BaseModel):
             nn.ReLU(),
             nn.Conv2d(32, 4, kernel_size=kernel_size, padding=padding),
             nn.Tanh(),
-            # todo: normalisation to [0, self.scale]
+            # todo: map / normalize values from [-1, 1] to [0, self.scale]
         )
         self.add_module("weighting", process_seq)
 
-    def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
-        # todo
-        pass
+    def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
+                i2_rgbd_image: torch.Tensor,
+                i3_rgbd_image: torch.Tensor,
+                i4_rgbd_image: torch.Tensor) -> torch.Tensor:
+        # TODO might be a wrong interpretation of the paper. Furthermore possible to cache the results
+        i0_wmap = self.weighting(i0_rgbd_image)
+        i1_wmap = self.weighting(i1_rgbd_image)
+        i2_wmap = self.weighting(i2_rgbd_image)
+        i3_wmap = self.weighting(i3_rgbd_image)
+        i4_wmap = self.weighting(i4_rgbd_image)
+        x = torch.mul(i0_wmap, i1_wmap, i2_wmap, i3_wmap, i4_wmap)
+        return x
+
 
 class NSRRReconstructionModel(BaseModel):
     """
     """
+
     def __init__(self):
         super(NSRRReconstructionModel, self).__init__()
         padding = 1
@@ -71,6 +84,7 @@ class NSRRReconstructionModel(BaseModel):
 
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
         # Encoder 1 is symmetrical to Decoder 1
+        # TODO check if there we need to explicitly declare a pooling operation at each encoder end step (same for upsize in decoder)
         encoder1 = nn.Sequential(
             nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
@@ -140,7 +154,8 @@ class LayerOutputModelDecorator(BaseModel):
 
         for name, module in self.model.named_children():
             if self.layer_predicate(name, module):
-                module.register_forward_hook(self.layer_forward_func(len(self.output_layers)))
+                module.register_forward_hook(
+                    self.layer_forward_func(len(self.output_layers)))
                 self.output_layers.append(torch.Tensor())
 
     def forward(self, x) -> List[torch.Tensor]:
