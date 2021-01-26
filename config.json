@@ -13,7 +13,8 @@
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
-            "num_workers": 8
+            "num_workers": 8,
+            "downsample": 2
         }
     },
     "optimizer": {

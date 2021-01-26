@@ -1,75 +1,129 @@
 import argparse
-import torch
-from tqdm import tqdm
-import data_loader.data_loaders as module_data
-import model.loss as module_loss
-import model.metric as module_metric
-import model.model as module_arch
+import collections
+import matplotlib.pyplot as plt
+
+import torchvision
+import torch.autograd
+import torch.nn as nn
+import torchvision.transforms as tf
+import torch.nn.functional as F
+
 from parse_config import ConfigParser
+from model import LayerOutputModelDecorator, NSRRFeatureExtractionModel
+from utils import Timer, upsample_zero_2d, optical_flow_to_motion, backward_warp_motion
+from data_loader import NSRRDataLoader
+
+from typing import Tuple
+
+
+class UnitTest:
+
+    @staticmethod
+    def nsrr_loss(img_view: torch.Tensor) -> None:
+        ## NSRR Loss
+        vgg_model = torchvision.models.vgg16(pretrained=True, progress=True)
+        vgg_model.eval()
+        layer_predicate = lambda name, module: type(module) == nn.Conv2d
+        lom = LayerOutputModelDecorator(vgg_model.features, layer_predicate)
+
+        # Preprocessing image. for reference,
+        # see: https://gist.github.com/jkarimi91/d393688c4d4cdb9251e3f939f138876e
+        # with a few changes.
+        dim = (224, 224)
+        trans = tf.Compose([tf.Resize(dim)])
+        img_loss = trans(img_view)
+        img_loss = torch.autograd.Variable(img_loss)
+
+        with Timer() as timer:
+            output_layers = lom.forward(img_loss)
+        print('(Perceptual loss) Execution time: ', timer.interval, ' s')
+
+        print("(Perceptual loss) Output of Conv2 layers: ")
+        for output in output_layers:
+            print("size: ", output.size())
+
+
+    @staticmethod
+    def feature_extraction(img_view: torch.Tensor, img_depth: torch.Tensor) -> None:
+        ## Feature extraction
+        feature_model = NSRRFeatureExtractionModel()
+
+        with Timer() as timer:
+            feat = feature_model.forward(img_view, img_depth)
+        print('(Feature extraction) Execution time: ', timer.interval, ' s')
+        # some visualisation, not very useful since they do not represent a RGB-image, but well.
+
+        trans = tf.ToPILImage()
+        plt.imshow(trans(feat[0]))
+        plt.draw()
+        plt.pause(0.01)
+
+
+    @staticmethod
+    def zero_upsampling(img_view: torch.Tensor, scale_factor: Tuple[int, int]) -> None:
+        ## Zero-upsampling
+        with Timer() as timer:
+            img_view_upsampled = upsample_zero_2d(img_view, scale_factor=scale_factor)
+        print('(Zero-upsampling) Execution time: ', timer.interval, ' s')
+
+        trans = tf.ToPILImage()
+        plt.imshow(trans(img_view_upsampled[0]))
+        plt.draw()
+        plt.pause(0.01)
+
+
+    @staticmethod
+    def backward_warping(img_view: torch.Tensor, img_flow: torch.Tensor, scale_factor: Tuple[int, int]) -> None:
+        ## First, zero-upsampling
+        img_view_upsampled = upsample_zero_2d(img_view, scale_factor=scale_factor)
+        # According to the article, bilinear interpolation of optical flow gives accurate enough results.
+        img_flow_upsampled = F.interpolate(img_flow, scale_factor=scale_factor, mode='bilinear', align_corners=False)
+        # HSV-RGB conversion sensitivity depends on export!
+        sensitivity = 0.1
+        with Timer() as timer:
+            img_motion = optical_flow_to_motion(img_flow_upsampled, sensitivity=sensitivity)
+        print('(RGB to HSV conversion) Execution time: ', timer.interval, ' s')
+        trans = tf.ToPILImage()
+        with Timer() as timer:
+            warped_view = backward_warp_motion(img_view_upsampled, img_motion)
+        print('(Backward warping of view) Execution time: ', timer.interval, ' s')
+        plt.imshow(trans(warped_view[0]))
+        plt.draw()
+        plt.pause(0.01)
+
+
+    @staticmethod
+    def dataloader_iteration(root_dir: str, batch_size: int) -> None:
+        loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size)
+
+        for batch_idx, x in enumerate(loader):
+            x_view, x_depth, x_flow = x[:3]
+            y_truth = x[3]
+            print(f"Batch #{batch_idx}, sizes:")
+            print(f"  view:  {x_view.size()}")
+            print(f"  depth: {x_depth.size()}")
+            print(f"  flow:  {x_flow.size()}")
+            print(f"  truth: {y_truth.size()}")
+
 
 
 def main(config):
-    logger = config.get_logger('test')
+    downscale_factor = config['data_loader']['args']['downsample']
+    root_dir = config['data_loader']['args']['data_dir']
+    batch_size = 8
 
-    # setup data_loader instances
-    data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
-        batch_size=512,
-        shuffle=False,
-        validation_split=0.0,
-        training=False,
-        num_workers=2
-    )
-
-    # build model architecture
-    model = config.init_obj('arch', module_arch)
-    logger.info(model)
-
-    # get function handles of loss and metrics
-    loss_fn = getattr(module_loss, config['loss'])
-    metric_fns = [getattr(module_metric, met) for met in config['metrics']]
-
-    logger.info('Loading checkpoint: {} ...'.format(config.resume))
-    checkpoint = torch.load(config.resume)
-    state_dict = checkpoint['state_dict']
-    if config['n_gpu'] > 1:
-        model = torch.nn.DataParallel(model)
-    model.load_state_dict(state_dict)
-
-    # prepare model for testing
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model.to(device)
-    model.eval()
-
-    total_loss = 0.0
-    total_metrics = torch.zeros(len(metric_fns))
-
-    with torch.no_grad():
-        for i, (data, target) in enumerate(tqdm(data_loader)):
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-
-            #
-            # save sample images, or do something with output here
-            #
-
-            # computing loss, metrics on test set
-            loss = loss_fn(output, target)
-            batch_size = data.shape[0]
-            total_loss += loss.item() * batch_size
-            for i, metric in enumerate(metric_fns):
-                total_metrics[i] += metric(output, target) * batch_size
-
-    n_samples = len(data_loader.sampler)
-    log = {'loss': total_loss / n_samples}
-    log.update({
-        met.__name__: total_metrics[i].item() / n_samples for i, met in enumerate(metric_fns)
-    })
-    logger.info(log)
+    # UnitTest.dataloader_iteration(root_dir, batch_size)
+    loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size, downscale_factor=downscale_factor)
+    # get a single batch
+    x_view, x_depth, x_flow, _ = next(iter(loader))
+    UnitTest.backward_warping(x_view, x_flow, downscale_factor)
+    # UnitTest.nsrr_loss(x_view)
+    UnitTest.feature_extraction(x_view, x_depth)
+    UnitTest.zero_upsampling(x_view, downscale_factor)
 
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PyTorch Template')
+    args = argparse.ArgumentParser(description='NSRR Unit testing')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,
@@ -77,5 +131,11 @@ if __name__ == '__main__':
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
 
-    config = ConfigParser.from_args(args)
+    # custom cli options to modify configuration from default values given in json file.
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    options = [
+        CustomArgs(['-ds', '--downscale'], type=float, target=('data_loader', 'args', 'downsample'))
+    ]
+
+    config = ConfigParser.from_args(args, options)
     main(config)

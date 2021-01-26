@@ -45,14 +45,16 @@ In order to be loaded using `NSRRDataLoader`, the dataset should be structured l
 │    ...
 ```
 
-Where `root_dir` can be given as an argument (defaults to `data`), and `View`, `Depth` and `Motion` are static members of `NSRRDataLoader`.
+Where `root_dir` is the `data_dir` in `config.json` of `NSRRDataLoader`
 
 **Note that corresponding tuples of (view, depth, motion) images files should share the same name, as they cannot be grouped together otherwise.**
 
 #### Unit testing
 
+You can remove `-d 1` if you do not have a CUDA-capable GPU.
+
 ```bash
-python3 unit_test.py --directory [path_to_root_dir] --filename [image_name]
+python3 test.py -c 'config.json' -d 1
 ```
 
 ### Miscellaneous information
