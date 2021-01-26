@@ -109,6 +109,7 @@ class UnitTest:
 
 def main(config):
     downscale_factor = config['data_loader']['args']['downsample']
+    downscale_factor = [downscale_factor, downscale_factor]
     root_dir = config['data_loader']['args']['data_dir']
     batch_size = 8
 
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
     options = [
-        CustomArgs(['-ds', '--downscale'], type=float, target=('data_loader', 'args', 'downsample'))
+        CustomArgs(['-ds', '--downscale'], type=int, target=('data_loader', 'args', 'downsample'))
     ]
 
     config = ConfigParser.from_args(args, options)
