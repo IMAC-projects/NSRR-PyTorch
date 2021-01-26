@@ -61,14 +61,14 @@ class UnitTest:
     def feature_reweight(i0: torch.Tensor, i1: torch.Tensor, i2: torch.Tensor, i3: torch.Tensor, i4: torch.Tensor) -> None:
         reweight = NSRRFeatureReweightingModel()
         with Timer() as timer:
-            print('TODO')
+            reweight.forward(i0, i1, i2, i3, i4)
         print('(Feature reweight) Execution time: ', timer.interval, ' s')
 
     @staticmethod
     def reconstruction(current_features: torch.Tensor, previous_features: torch.Tensor) -> None:
         recons = NSRRReconstructionModel()
         with Timer() as timer:
-            print('TODO')
+            recons.forward(current_features, previous_features)
         print('(Reconstruction) Execution time: ', timer.interval, ' s')
 
     @staticmethod
@@ -128,11 +128,17 @@ def main(config):
     loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size, downscale_factor=downscale_factor)
     # get a single batch
     x_view, x_depth, x_flow, _ = next(iter(loader))
+
+    # Test util functions
     UnitTest.backward_warping(x_view, x_flow, downscale_factor)
-    # UnitTest.nsrr_loss(x_view)
-    UnitTest.feature_extraction(x_view, x_depth)
+    UnitTest.nsrr_loss(x_view)
     UnitTest.zero_upsampling(x_view, downscale_factor)
 
+    # Test neural network
+    UnitTest.feature_extraction(x_view, x_depth)
+    rgbd = torch.cat((x_view, x_depth), 1)
+    UnitTest.feature_reweight(rgbd, rgbd, rgbd, rgbd, rgbd)
+    # UnitTest.reconstruction(x_view, x_view)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='NSRR Unit testing')

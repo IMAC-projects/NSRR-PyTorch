@@ -58,7 +58,7 @@ class NSRRFeatureReweightingModel(BaseModel):
         )
         self.add_module("weighting", process_seq)
 
-    def mapRangeToRange(tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1):
+    def mapRangeToRange(self, tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1):
         return torch.div(torch.mul(torch.add(tensor, -in_min), out_max - out_min), (in_max - in_min) + out_min)
 
     def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
@@ -67,13 +67,13 @@ class NSRRFeatureReweightingModel(BaseModel):
         # Generates a pixel-wise weighting map for the current and each previous frames.
         # TODO cache the results
         i0_wmap = self.weighting(i0_rgbd_image)
-        i0_wmap = mapRangeToRange(i0_wmap, -1, 1, 0, self.scale)
+        i0_wmap = self.mapRangeToRange(i0_wmap, -1, 1, 0, self.scale)
         i1_wmap = self.weighting(i1_rgbd_image)
-        i1_wmap = mapRangeToRange(i1_wmap, -1, 1, 0, self.scale)
+        i1_wmap = self.mapRangeToRange(i1_wmap, -1, 1, 0, self.scale)
         i2_wmap = self.weighting(i2_rgbd_image)
-        i2_wmap = mapRangeToRange(i2_wmap, -1, 1, 0, self.scale)
+        i2_wmap = self.mapRangeToRange(i2_wmap, -1, 1, 0, self.scale)
         i3_wmap = self.weighting(i3_rgbd_image)
-        i3_wmap = mapRangeToRange(i3_wmap, -1, 1, 0, self.scale)
+        i3_wmap = self.mapRangeToRange(i3_wmap, -1, 1, 0, self.scale)
 
         # Each weighting map is multiplied to all features of the corresponding previous frame.
         i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
@@ -82,7 +82,9 @@ class NSRRFeatureReweightingModel(BaseModel):
         i0_wmap = torch.mul(i0_wmap, i1_rgbd_image)
 
         # Weight multiply
-        x = torch.mul(i0_wmap, i1_wmap, i2_wmap, i3_wmap)
+        x = torch.mul(i0_wmap, i1_wmap)
+        x = torch.mul(x, i2_wmap)
+        x = torch.mul(x, i3_wmap)
         return x
 
 
@@ -95,8 +97,8 @@ class NSRRReconstructionModel(BaseModel):
         padding = 1
         kernel_size = 3
 
-        self.pool = nn.MaxPool2d(self.kernel_size, padding=self.padding, return_indices=True)
-        self.upsize = nn.MaxUnpool2d(self.kernel_size, padding=self.padding)
+        self.pool = nn.MaxPool2d(kernel_size, padding=padding, return_indices=True)
+        self.upsize = nn.MaxUnpool2d(kernel_size, padding=padding)
 
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
         # Encoder 1 is symmetrical to Decoder 1   
