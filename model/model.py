@@ -103,7 +103,7 @@ class NSRRReconstructionModel(BaseModel):
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
         # Encoder 1 is symmetrical to Decoder 1   
         encoder1 = nn.Sequential(
-            nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
+            nn.Conv2d(8, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
@@ -142,7 +142,7 @@ class NSRRReconstructionModel(BaseModel):
     def forward(self, current_features: torch.Tensor, previous_features: torch.Tensor) -> torch.Tensor:
         # Features of the current frame and the reweighted features
         # of previous frames are concatenated
-        x = torch.cat(current_features, previous_features)
+        x = torch.cat((current_features, previous_features), 1)
 
         # 1. Cache result to handle 'skipped' connection for encoder 1
         x_encoder_1 = self.encoder_1(x)
@@ -156,15 +156,16 @@ class NSRRReconstructionModel(BaseModel):
 
         # 3. Continue to run the model and upsize the image to progressively restore its original size
         x = self.center(x)
+        # FIXME size do not match
         x = self.upsize(x, pool_2_indices)
         
         # 4. We concatenate the original input that 'skipped' the network for encoder 1 and 2
-        x = torch.cat(x, x_encoder_2)
+        x = torch.cat((x, x_encoder_2), 1)
 
         # Process with step 3. and 4.
         x = self.decoder_2(x)
         x = self.upsize(x, pool_1_indices)
-        x = torch.cat(x, x_encoder_1)
+        x = torch.cat((x, x_encoder_1), 1)
         x = self.decoder_1(x)
         return x
 

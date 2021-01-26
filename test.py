@@ -138,7 +138,7 @@ def main(config):
     UnitTest.feature_extraction(x_view, x_depth)
     rgbd = torch.cat((x_view, x_depth), 1)
     UnitTest.feature_reweight(rgbd, rgbd, rgbd, rgbd, rgbd)
-    # UnitTest.reconstruction(x_view, x_view)
+    UnitTest.reconstruction(rgbd, rgbd)
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='NSRR Unit testing')
