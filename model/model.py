@@ -58,7 +58,7 @@ class NSRRFeatureReweightingModel(BaseModel):
         )
         self.add_module("weighting", process_seq)
 
-    def mapRangeToRange(self, tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1):
+    def mapRangeToRange(self, tensor: torch.Tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1) -> torch.Tensor:
         return torch.div(torch.mul(torch.add(tensor, -in_min), out_max - out_min), (in_max - in_min) + out_min)
 
     def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
@@ -140,6 +140,14 @@ class NSRRReconstructionModel(BaseModel):
         self.add_module("decoder_2", decoder2)
         self.add_module("decoder_1", decoder1)
 
+    def crop_tensor(self, target: torch.Tensor, actual: torch.Tensor) -> torch.Tensor:
+        # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py
+        diffY = actual.size()[2] - target.size()[2]
+        diffX = actual.size()[3] - target.size()[3]
+        x = F.pad(target, [diffX // 2, diffX - diffX // 2,
+                        diffY // 2, diffY - diffY // 2])
+        return x
+
     def forward(self, current_features: torch.Tensor, previous_features: torch.Tensor) -> torch.Tensor:
         # Features of the current frame and the reweighted features
         # of previous frames are concatenated
@@ -152,9 +160,11 @@ class NSRRReconstructionModel(BaseModel):
         x = self.pooling(x_encoder_2)
         x = self.center(x)
 
-        # Concatenate the original input that 'skipped' the network for encoder 1 and 2
+        # Crop the skipped image to target dimension and concatenate for encoder 1 & 2
+        #x_encoder_2 = self.crop_tensor(x_encoder_2, x)
         #x = torch.cat((x, x_encoder_2), 1)
         x = self.decoder_2(x)
+        #x_encoder_1 = self.crop_tensor(x_encoder_1, x)
         #x = torch.cat((x, x_encoder_1), 1)
         x = self.decoder_1(x)
         return x
