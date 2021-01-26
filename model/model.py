@@ -97,34 +97,34 @@ class NSRRReconstructionModel(BaseModel):
         padding = 1
         kernel_size = 3
 
-        self.pool = nn.MaxPool2d(kernel_size, padding=padding, return_indices=True)
-        self.upsize = nn.MaxUnpool2d(kernel_size, padding=padding)
-
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
-        # Encoder 1 is symmetrical to Decoder 1   
         encoder1 = nn.Sequential(
             nn.Conv2d(8, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size, padding=padding)
         )
         encoder2 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size, padding=padding)
         )
         center = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(128, 128, kernel_size=kernel_size, padding=padding),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Upsample(scale_factor=2, mode='bilinear')
         )
         decoder2 = nn.Sequential(
             nn.Conv2d(128, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Upsample(scale_factor=2, mode='bilinear')
         )
         decoder1 = nn.Sequential(
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
@@ -144,27 +144,20 @@ class NSRRReconstructionModel(BaseModel):
         # of previous frames are concatenated
         x = torch.cat((current_features, previous_features), 1)
 
-        # 1. Cache result to handle 'skipped' connection for encoder 1
+        # Cache result to handle 'skipped' connection for encoder 1 & 2
         x_encoder_1 = self.encoder_1(x)
+        x_encoder_2 = self.encoder_2(x_encoder_1)
 
-        # 2. Apply pooling to reduce image size and store indices for future upsizing
-        x, pool_1_indices = self.pool(x_encoder_1)
+        # Continue to run the model
+        x = self.center(x_encoder_2)
 
-        # Process with step 1. and 2.
-        x_encoder_2 = self.encoder_2(x)
-        x, pool_2_indices = self.pool(x_encoder_2)
-
-        # 3. Continue to run the model and upsize the image to progressively restore its original size
-        x = self.center(x)
-        # FIXME size do not match
-        x = self.upsize(x, pool_2_indices)
-        
-        # 4. We concatenate the original input that 'skipped' the network for encoder 1 and 2
+        # Concatenate the original input that 'skipped' the network for encoder 1 and 2
+        # print(x.shape)
+        # print("--")
+        # print(x_encoder_2.shape)
+        # FIXME cannot concat as not same size
         x = torch.cat((x, x_encoder_2), 1)
-
-        # Process with step 3. and 4.
         x = self.decoder_2(x)
-        x = self.upsize(x, pool_1_indices)
         x = torch.cat((x, x_encoder_1), 1)
         x = self.decoder_1(x)
         return x
