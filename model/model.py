@@ -90,41 +90,42 @@ class NSRRFeatureReweightingModel(BaseModel):
 
 class NSRRReconstructionModel(BaseModel):
     """
+    Reconstruction Model based on U-Net structure
+    https://arxiv.org/pdf/1505.04597.pdf https://github.com/usuyama/pytorch-unet/blob/master/pytorch_unet.py
     """
 
     def __init__(self):
         super(NSRRReconstructionModel, self).__init__()
         padding = 1
         kernel_size = 3
+        self.pooling = nn.MaxPool2d(2)
 
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
         encoder1 = nn.Sequential(
             nn.Conv2d(8, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size, padding=padding)
+            nn.ReLU()
         )
         encoder2 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size, padding=padding)
+            nn.ReLU()
         )
         center = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(128, 128, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode='bilinear')
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         )
         decoder2 = nn.Sequential(
             nn.Conv2d(128, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode='bilinear')
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         )
         decoder1 = nn.Sequential(
             nn.Conv2d(64, 32, kernel_size=kernel_size, padding=padding),
@@ -146,19 +147,15 @@ class NSRRReconstructionModel(BaseModel):
 
         # Cache result to handle 'skipped' connection for encoder 1 & 2
         x_encoder_1 = self.encoder_1(x)
-        x_encoder_2 = self.encoder_2(x_encoder_1)
-
-        # Continue to run the model
-        x = self.center(x_encoder_2)
+        x = self.pooling(x_encoder_1)
+        x_encoder_2 = self.encoder_2(x)
+        x = self.pooling(x_encoder_2)
+        x = self.center(x)
 
         # Concatenate the original input that 'skipped' the network for encoder 1 and 2
-        # print(x.shape)
-        # print("--")
-        # print(x_encoder_2.shape)
-        # FIXME cannot concat as not same size
-        x = torch.cat((x, x_encoder_2), 1)
+        #x = torch.cat((x, x_encoder_2), 1)
         x = self.decoder_2(x)
-        x = torch.cat((x, x_encoder_1), 1)
+        #x = torch.cat((x, x_encoder_1), 1)
         x = self.decoder_1(x)
         return x
 
