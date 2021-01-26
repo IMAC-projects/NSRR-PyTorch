@@ -20,6 +20,10 @@ pip install -r requirements.txt
 
 #### Dataset
 
+You can generate your own dataset from [this Unity 2019 project](https://gitlab.com/piptouque/unity_ml_dataset) it will export the view, the depth buffer and the motion vector of the game camera in any resolution you want. We've setup a few animated scenes already, check the repo for more details.
+
+**Pre-created dataset will be downloadable soon**
+
 In order to be loaded using `NSRRDataLoader`, the dataset should be structured like so:
 
 ```

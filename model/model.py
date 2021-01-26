@@ -99,7 +99,7 @@ class NSRRReconstructionModel(BaseModel):
         self.upsize = nn.MaxUnpool2d(self.kernel_size, padding=self.padding)
 
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
-        # Encoder 1 is symmetrical to Decoder 1
+        # Encoder 1 is symmetrical to Decoder 1   
         encoder1 = nn.Sequential(
             nn.Conv2d(4, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
@@ -114,7 +114,7 @@ class NSRRReconstructionModel(BaseModel):
         )
         center = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=kernel_size, padding=padding),
-            nn.ReLU()
+            nn.ReLU(),
             nn.Conv2d(128, 128, kernel_size=kernel_size, padding=padding),
             nn.ReLU()
         )
