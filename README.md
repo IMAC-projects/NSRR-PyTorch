@@ -1,6 +1,20 @@
-# image-interpolation
+# Neural Supersampling for Real-time Rendering with Pytorch
 
-Deep learning project to create new images based on the previous ones
+Create super-resolution images from low-resolution in real time. Non-official implementation of the paper [NSRR](https://research.fb.com/wp-content/uploads/2020/06/Neural-Supersampling-for-Real-time-Rendering.pdf) by Facebook Reality Labs in 2020. A [blog post](https://research.fb.com/blog/2020/07/introducing-neural-supersampling-for-real-time-rendering/) is available with more details.
+
+**This is a work-in-progress**
+
+## Getting started
+
+### Requirements
+
+You need Python at least 3.5 (3.6 recommended).
+
+To install other dependencies, you can use pip with :
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Usage
 
@@ -27,15 +41,15 @@ In order to be loaded using `NSRRDataLoader`, the dataset should be structured l
 │    ...
 ```
 
-Where `root_dir` can be given as an argument, and `View`, `Depth` and `Motion` are static members of `NSRRDataLoader`.
+Where `root_dir` can be given as an argument (defaults to `data`), and `View`, `Depth` and `Motion` are static members of `NSRRDataLoader`.
 
 **Note that corresponding tuples of (view, depth, motion) images files should share the same name, as they cannot be grouped together otherwise.**
 
-
 #### Unit testing
 
-    python3 unit_test.py --directory [path_to_root_dir] --filename [image_name]
-
+```bash
+python3 unit_test.py --directory [path_to_root_dir] --filename [image_name]
+```
 
 ### Miscellaneous information
 
