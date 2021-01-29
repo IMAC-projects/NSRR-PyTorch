@@ -17,12 +17,11 @@ class NSRRDataLoader(BaseDataLoader):
     """
 
     """
-    depth_dirname = "Depth"
-    flow_diname = "Motion"
-    view_dirname = "View"
-
     def __init__(self,
                  root_dir: str,
+                 view_dirname: str,
+                 depth_dirname: str,
+                 flow_dirname,
                  batch_size: int,
                  suffle: bool = True,
                  validation_split: float = 0.0,
@@ -30,9 +29,9 @@ class NSRRDataLoader(BaseDataLoader):
                  downscale_factor: Union[Tuple[int, int], List[int], int] = (2, 2)
                  ):
         dataset = NSRRDataset(root_dir,
-                              view_dirname=NSRRDataLoader.view_dirname,
-                              depth_dirname=NSRRDataLoader.depth_dirname,
-                              flow_dirname=NSRRDataLoader.flow_diname,
+                              view_dirname=view_dirname,
+                              depth_dirname=depth_dirname,
+                              flow_dirname=flow_dirname,
                               downscale_factor=downscale_factor
                               )
         super(NSRRDataLoader, self).__init__(dataset=dataset,

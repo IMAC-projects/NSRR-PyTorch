@@ -14,6 +14,9 @@
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 8,
+            "view_dirname": "View/",
+            "depth_dirname": "Depth/",
+            "flow_dirname": "Motion/",
             "downsample": 2
         }
     },

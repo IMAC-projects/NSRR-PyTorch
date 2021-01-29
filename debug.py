@@ -13,10 +13,18 @@ def main(config):
     downscale_factor = config['data_loader']['args']['downsample']
     downscale_factor = [downscale_factor, downscale_factor]
     root_dir = config['data_loader']['args']['data_dir']
+    view_dirname = config['data_loader']['args']['view_dirname']
+    depth_dirname = config['data_loader']['args']['depth_dirname']
+    flow_dirname = config['data_loader']['args']['flow_dirname']
     batch_size = 8
 
     # UnitTest.dataloader_iteration(root_dir, batch_size)
-    loader = NSRRDataLoader(root_dir=root_dir, batch_size=batch_size, downscale_factor=downscale_factor)
+    loader = NSRRDataLoader(root_dir=root_dir,
+                            view_dirname=view_dirname,
+                            depth_dirname=depth_dirname,
+                            flow_dirname=flow_dirname,
+                            batch_size=batch_size,
+                            downscale_factor=downscale_factor)
     # get a single batch
     x_view, x_depth, x_flow, _ = next(iter(loader))
 
