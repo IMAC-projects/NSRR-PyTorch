@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
 
-from typing import List, Callable, Any
+from typing import Union, List, Tuple, Callable, Any
 
 
 class NSRRFeatureExtractionModel(BaseModel):
@@ -54,12 +54,10 @@ class NSRRFeatureReweightingModel(BaseModel):
             nn.Conv2d(32, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(32, 4, kernel_size=kernel_size, padding=padding),
-            nn.Tanh()
+            nn.Tanh(),
+            Remap([-1, 1], [0, self.scale])
         )
         self.add_module("weighting", process_seq)
-
-    def mapRangeToRange(self, tensor: torch.Tensor, in_min = 0, in_max = 10, out_min = 0, out_max = 1) -> torch.Tensor:
-        return torch.div(torch.mul(torch.add(tensor, -in_min), out_max - out_min), (in_max - in_min) + out_min)
 
     def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
                 i2_rgbd_image: torch.Tensor, i3_rgbd_image: torch.Tensor,
@@ -67,13 +65,9 @@ class NSRRFeatureReweightingModel(BaseModel):
         # Generates a pixel-wise weighting map for the current and each previous frames.
         # TODO cache the results
         i0_wmap = self.weighting(i0_rgbd_image)
-        i0_wmap = self.mapRangeToRange(i0_wmap, -1, 1, 0, self.scale)
         i1_wmap = self.weighting(i1_rgbd_image)
-        i1_wmap = self.mapRangeToRange(i1_wmap, -1, 1, 0, self.scale)
         i2_wmap = self.weighting(i2_rgbd_image)
-        i2_wmap = self.mapRangeToRange(i2_wmap, -1, 1, 0, self.scale)
         i3_wmap = self.weighting(i3_rgbd_image)
-        i3_wmap = self.mapRangeToRange(i3_wmap, -1, 1, 0, self.scale)
 
         # Each weighting map is multiplied to all features of the corresponding previous frame.
         i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
@@ -86,6 +80,29 @@ class NSRRFeatureReweightingModel(BaseModel):
         x = torch.mul(x, i2_wmap)
         x = torch.mul(x, i3_wmap)
         return x
+
+
+class Remap(BaseModel):
+    """
+    Basic layer for element-wise remapping of values from one range to another.
+    """
+
+    in_range: Tuple[float, float]
+    out_range: Tuple[float, float]
+
+    def __init__(self,
+                 in_range: Union[Tuple[float, float], List[float]],
+                 out_range: Union[Tuple[float, float], List[float]]
+                 ):
+        assert(len(in_range) == len(out_range) and len(in_range) == 2)
+        super(BaseModel, self).__init__()
+        self.in_range = tuple(in_range)
+        self.out_range = tuple(out_range)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.div(
+            torch.mul(torch.add(x, - self.in_range[0]), self.out_range[1] - self.out_range[0]),
+            (self.in_range[1] - self.in_range[0]) + self.out_range[0])
 
 
 class NSRRReconstructionModel(BaseModel):
@@ -139,6 +156,7 @@ class NSRRReconstructionModel(BaseModel):
         self.add_module("center", center)
         self.add_module("decoder_2", decoder2)
         self.add_module("decoder_1", decoder1)
+
 
     def crop_tensor(self, target: torch.Tensor, actual: torch.Tensor) -> torch.Tensor:
         # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py

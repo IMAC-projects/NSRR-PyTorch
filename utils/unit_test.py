@@ -40,9 +40,11 @@ class UnitTest:
             output_layers = lom.forward(img_loss)
         print('(Perceptual loss) Execution time: ', timer.interval, ' s')
 
+        """
         print("(Perceptual loss) Output of Conv2 layers: ")
         for output in output_layers:
             print("size: ", output.size())
+        """
 
     @staticmethod
     def feature_extraction(img_view: torch.Tensor, img_depth: torch.Tensor) -> None:
@@ -53,7 +55,6 @@ class UnitTest:
             feat = feature_model.forward(img_view, img_depth)
         print('(Feature extraction) Execution time: ', timer.interval, ' s')
         # some visualisation, not very useful since they do not represent a RGB-image, but well.
-
         trans = tf.ToPILImage()
         plt.imshow(trans(feat[0]))
         plt.title('feature_extraction')
@@ -119,4 +120,3 @@ class UnitTest:
             print(f"  depth: {x_depth.size()}")
             print(f"  flow:  {x_flow.size()}")
             print(f"  truth: {y_truth.size()}")
-
