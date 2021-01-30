@@ -50,8 +50,17 @@ class NSRRFeatureReweightingModel(BaseModel):
         # Adding padding here so that we do not lose width or height because of the convolutions.
         # The input and output must have the same image dimensions so that we may concatenate them
         padding = 1
+        # todo: I'm unsure about what to feed the module here, from the paper:
+        # "The feature reweighting module is a 3-layer convolutional neural network,
+        # which takes the RGB-D of the zero-upsampled current frame
+        # as well as the zero-upsampled, warped previous frames as input,
+        # and generates a pixel-wise weighting map for each previous frame,
+        # with values between 0 and 10."
+        # So do we concatenated the RGBD of the current frame
+        # to each previous RGBD frame? That's what I'm going to do for now.
+        # So the input number of channels in the first 2D convolution is 8.
         process_seq = nn.Sequential(
-            nn.Conv2d(4, 32, kernel_size=kernel_size, padding=padding),
+            nn.Conv2d(8, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
             nn.Conv2d(32, 32, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),
@@ -61,50 +70,40 @@ class NSRRFeatureReweightingModel(BaseModel):
         )
         self.add_module("weighting", process_seq)
 
-    def forward(self, i0_rgbd_image: torch.Tensor, i1_rgbd_image: torch.Tensor,
-                i2_rgbd_image: torch.Tensor, i3_rgbd_image: torch.Tensor,
-                i4_rgbd_image: torch.Tensor) -> torch.Tensor:
-        # Generates a pixel-wise weighting map for the current and each previous frames.
+    def forward(self,
+                current_features_upsampled:
+                    torch.Tensor,
+                list_previous_features_warped:
+                    List[torch.Tensor]) -> List[torch.Tensor]:
+        # Generating a pixel-wise weighting map for the current and each previous frames.
+        # current_feature_upsampled[:, :4] are the RGBD of the current frame (upsampled).
+        # previous_features_warped [:, :4] are the RGBD of the previous frame (upsampled then warped).
         # TODO cache the results
-        i0_wmap = self.weighting(i0_rgbd_image)
-        i1_wmap = self.weighting(i1_rgbd_image)
-        i2_wmap = self.weighting(i2_rgbd_image)
-        i3_wmap = self.weighting(i3_rgbd_image)
+        list_weighting_maps = []
+        for previous_features_warped in list_previous_features_warped:
+            list_weighting_maps.append(self.weighting(
+                torch.cat((current_features_upsampled[:, :4],
+                           previous_features_warped[:, :4]), dim=1)))
 
-        # Each weighting map is multiplied to all features of the corresponding previous frame.
-        i3_wmap = torch.mul(i3_wmap, i4_rgbd_image)
-        i2_wmap = torch.mul(i2_wmap, i3_rgbd_image)
-        i1_wmap = torch.mul(i1_wmap, i2_rgbd_image)
-        i0_wmap = torch.mul(i0_wmap, i1_rgbd_image)
-
-        # Weight multiply
-        x = torch.mul(i0_wmap, i1_wmap)
-        x = torch.mul(x, i2_wmap)
-        x = torch.mul(x, i3_wmap)
-        return x
-
-
-class Remap(BaseModel):
-    """
-    Basic layer for element-wise remapping of values from one range to another.
-    """
-
-    in_range: Tuple[float, float]
-    out_range: Tuple[float, float]
-
-    def __init__(self,
-                 in_range: Union[Tuple[float, float], List[float]],
-                 out_range: Union[Tuple[float, float], List[float]]
-                 ):
-        assert(len(in_range) == len(out_range) and len(in_range) == 2)
-        super(BaseModel, self).__init__()
-        self.in_range = tuple(in_range)
-        self.out_range = tuple(out_range)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return torch.div(
-            torch.mul(torch.add(x, - self.in_range[0]), self.out_range[1] - self.out_range[0]),
-            (self.in_range[1] - self.in_range[0]) + self.out_range[0])
+        print(list_weighting_maps[0].shape)
+        print(list_previous_features_warped[0].shape)
+        # todo: figure out what to do here.
+        # in the paper:
+        # "Then each weighting map is multiplied to all features
+        # of the corresponding previous frame."
+        # Each weighting map is multiplied
+        # Multiplying each feature of each previous frame
+        # by the corresponding weighting map?
+        list_previous_features_reweighted = []
+        for i in range(len(list_weighting_maps)):
+            list_previous_features_reweighted.append(list_previous_features_warped[i])
+            """
+            list_previous_features_reweighted.append(torch.mul(
+                list_previous_features_warped[i],
+                list_weighting_maps[i]
+            ))
+           """
+        return list_previous_features_reweighted
 
 
 class NSRRReconstructionModel(BaseModel):
@@ -113,13 +112,21 @@ class NSRRReconstructionModel(BaseModel):
     https://arxiv.org/pdf/1505.04597.pdf https://github.com/usuyama/pytorch-unet/blob/master/pytorch_unet.py
     """
 
-    def __init__(self):
+    def __init__(self, number_previous_frames: int = 5):
         super(NSRRReconstructionModel, self).__init__()
         padding = 1
         kernel_size = 3
         self.pooling = nn.MaxPool2d(2)
 
+        assert(number_previous_frames > 0)
+        # This is constant throughout the life of a model.
+        self.number_previous_frames = number_previous_frames
+
         # Split the network into 5 groups of 2 layers to apply concat operation at each stage
+        # todo: the first layer of the model would take
+        # the concatenated features of all previous frames,
+        # so the input number of channels of the first 2D convolution
+        # would be 12 * self.number_previous_frames
         encoder1 = nn.Sequential(
             nn.Conv2d(8, 64, kernel_size=kernel_size, padding=padding),
             nn.ReLU(),

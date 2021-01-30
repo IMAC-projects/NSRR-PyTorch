@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5e1a6576-766a-489b-bd62-01d55c17d48d" name="Default Changelist" comment="[Feature]: Added layers for remapping and zero-upsampling.">
+    <list default="true" id="5e1a6576-766a-489b-bd62-01d55c17d48d" name="Default Changelist" comment="[Feature]: Added layers for warping and conversions.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model.py" afterDir="false" />
@@ -107,7 +107,7 @@
       <workItem from="1611147438055" duration="16115000" />
       <workItem from="1611338951835" duration="1386000" />
       <workItem from="1612006793573" duration="1156000" />
-      <workItem from="1612008811401" duration="9231000" />
+      <workItem from="1612008811401" duration="15081000" />
     </task>
     <task id="LOCAL-00001" summary="[Feature]: Added Layer output model decorator.">
       <created>1610902970409</created>
@@ -186,7 +186,14 @@
       <option name="project" value="LOCAL" />
       <updated>1612015925814</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="[Feature]: Added layers for warping and conversions.">
+      <created>1612018354020</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1612018354020</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -221,10 +228,11 @@
     <MESSAGE value="[Improvement]: Now taking downscaling factor and batch size as args." />
     <MESSAGE value="[Nitpick]: Added some to-do elements." />
     <MESSAGE value="[Feature]: Added layers for remapping and zero-upsampling." />
-    <option name="LAST_COMMIT_MESSAGE" value="[Feature]: Added layers for remapping and zero-upsampling." />
+    <MESSAGE value="[Feature]: Added layers for warping and conversions." />
+    <option name="LAST_COMMIT_MESSAGE" value="[Feature]: Added layers for warping and conversions." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/NSRR_PyTorch$unit_test.coverage" NAME="unit_test Coverage Results" MODIFIED="1612012756950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/NSRR_PyTorch$unit_test.coverage" NAME="unit_test Coverage Results" MODIFIED="1612025868728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/NSRR_PyTorch$debug.coverage" NAME="debug Coverage Results" MODIFIED="1610915946203" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

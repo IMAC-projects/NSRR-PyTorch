@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from threading import Lock, Thread
-from typing import Tuple
+from typing import Union, Tuple, List
 
 from pytorch_colors import rgb_to_hsv
 
@@ -60,7 +60,10 @@ def optical_flow_to_motion(rgb_flow: torch.Tensor, sensitivity: float = 0.5) -> 
     return motion
 
 
-def upsample_zero_2d(img: torch.Tensor, size=None, scale_factor=None) -> torch.Tensor:
+def upsample_zero_2d(img: torch.Tensor,
+                     size: Union[Tuple[int, int], None] = None,
+                     scale_factor: Union[Tuple[int, int], List[int], int, None] = None) \
+        -> torch.Tensor:
     """
     IMPORTANT: we only support integer scaling factors for now!!
     """

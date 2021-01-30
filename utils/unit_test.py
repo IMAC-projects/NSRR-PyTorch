@@ -13,7 +13,7 @@ from model import LayerOutputModelDecorator, \
 
 from utils import Timer, upsample_zero_2d, backward_warp_motion, optical_flow_to_motion
 
-from typing import Tuple
+from typing import List, Tuple
 
 
 class UnitTest:
@@ -52,25 +52,28 @@ class UnitTest:
         # Feature extraction
         feature_model = NSRRFeatureExtractionModel()
         with Timer() as timer:
-            feat = feature_model.forward(img_view, img_depth)
+            features = feature_model.forward(img_view, img_depth)
         if cls.log_execution_time:
             print('(Feature extraction) Execution time: ', timer.interval, ' s')
 
         # some visualisation, not very useful since they do not represent a RGB-image, but well.
         if cls.plot_output:
             trans = tf.ToPILImage()
-            plt.imshow(trans(feat[0]))
+            plt.imshow(trans(features[0]))
             plt.title('feature_extraction')
             plt.draw()
             plt.pause(1)
 
     @classmethod
-    def feature_reweighting(cls, i0: torch.Tensor, i1: torch.Tensor, i2: torch.Tensor, i3: torch.Tensor, i4: torch.Tensor) -> None:
-        reweight = NSRRFeatureReweightingModel()
+    def feature_reweighting(cls,
+                            current_features: torch.Tensor,
+                            list_previous_warped_features: List[torch.Tensor]
+                            ) -> None:
+        feature_model = NSRRFeatureReweightingModel()
         with Timer() as timer:
-            reweight.forward(i0, i1, i2, i3, i4)
+            features = feature_model.forward(current_features, list_previous_warped_features)
         if cls.log_execution_time:
-            print('(Feature reweight) Execution time: ', timer.interval, ' s')
+            print('(Feature reweighting) Execution time: ', timer.interval, ' s')
 
     @classmethod
     def reconstruction(cls, current_features: torch.Tensor, previous_features: torch.Tensor) -> None:

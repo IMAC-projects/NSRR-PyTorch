@@ -1,10 +1,13 @@
 import argparse
 import collections
 
-import torch.autograd
+import torch.nn as nn
 
 from parse_config import ConfigParser
 from data_loader import NSRRDataLoader
+from model import NSRRFeatureExtractionModel, \
+    NSRRFeatureReweightingModel, NSRRReconstructionModel, \
+    ZeroUpsample2D, OpticalFlowToMotion, BackwardWarp
 
 from utils.unit_test import UnitTest
 
@@ -16,7 +19,12 @@ def main(config):
     view_dirname = config['data_loader']['args']['view_dirname']
     depth_dirname = config['data_loader']['args']['depth_dirname']
     flow_dirname = config['data_loader']['args']['flow_dirname']
-    batch_size = 8
+
+    number_previous_frames = 5
+    scale_factor = (2, 2)
+    flow_sensitivity = 0.5
+
+    batch_size = number_previous_frames + 1
 
     # UnitTest.dataloader_iteration(root_dir, batch_size)
     loader = NSRRDataLoader(root_dir=root_dir,
@@ -33,11 +41,93 @@ def main(config):
     UnitTest.nsrr_loss(x_view)
     UnitTest.zero_upsampling(x_view, downscale_factor)
 
-    # Test neural network
-    UnitTest.feature_extraction(x_view, x_depth)
-    rgbd = torch.cat((x_view, x_depth), 1)
-    UnitTest.feature_reweight(rgbd, rgbd, rgbd, rgbd, rgbd)
-    UnitTest.reconstruction(rgbd, rgbd)
+    # UnitTest.feature_extraction(x_view, x_depth)
+    # UnitTest.feature_reweighting(rgbd, rgbd, rgbd, rgbd, rgbd)
+    # UnitTest.reconstruction(rgbd, rgbd)
+
+    # Test whole neural network
+    current_view = x_view[0].unsqueeze(0)
+    current_depth = x_depth[0].unsqueeze(0)
+    current_flow = x_flow[0].unsqueeze(0)
+
+    list_previous_view = []
+    list_previous_depth = []
+    list_previous_flow = []
+
+    for i in range(1, number_previous_frames + 1):
+        list_previous_view.append(x_view[i].unsqueeze(0))
+        list_previous_depth.append(x_depth[i].unsqueeze(0))
+        list_previous_flow.append(x_flow[i].unsqueeze(0))
+
+    # 1°) extract features
+    feature_extraction_model = NSRRFeatureExtractionModel()
+
+    current_features = feature_extraction_model.forward(current_view, current_depth)
+    list_previous_features = []
+    for i in range(number_previous_frames):
+        list_previous_features.append(
+            feature_extraction_model.forward(list_previous_view[i],
+                                             list_previous_depth[i]))
+
+    # 2°) upsample features
+    zero_upsampling_model = ZeroUpsample2D(scale_factor=scale_factor)
+    current_features_upsampled = zero_upsampling_model.forward(current_features)
+
+    list_previous_features_upsampled = []
+    for i in range(number_previous_frames):
+        list_previous_features_upsampled.append(
+           zero_upsampling_model.forward(list_previous_features[i])
+        )
+
+    # 3°) we need to convert from optical flow
+    # to motion vectors,then upsample them.
+    flow_motion_model = OpticalFlowToMotion(sensitivity=flow_sensitivity)
+    motion_upsampling_model = nn.UpsamplingBilinear2d(scale_factor=scale_factor)
+
+    current_motion_upsampled = motion_upsampling_model.forward(
+        flow_motion_model.forward(current_flow))
+    list_previous_motion_upsampled = []
+    for i in range(number_previous_frames):
+        list_previous_motion_upsampled.append(
+            motion_upsampling_model.forward(
+                flow_motion_model.forward(current_flow)
+        ))
+
+    # 4°) warp previous features and motion recursively
+    # to align them with the current one.
+    motion_warping_model = BackwardWarp()
+
+    list_previous_motion_from_current = [
+        motion_warping_model.forward(
+            list_previous_motion_upsampled[0],
+            current_motion_upsampled
+        )
+    ]
+    for i in range(1, number_previous_frames):
+        list_previous_motion_from_current.append(
+            motion_warping_model.forward(
+                list_previous_motion_upsampled[i],
+                list_previous_motion_from_current[-1]
+            )
+        )
+
+    list_previous_features_warped = []
+    for i in range(number_previous_frames):
+        list_previous_features_warped.append(
+            motion_warping_model(
+                list_previous_features_upsampled[i],
+                list_previous_motion_from_current[i]
+             )
+        )
+
+    # 5°) reweight features of previous frames
+    feature_reweighting_model = NSRRFeatureReweightingModel()
+
+    list_previous_features_reweighted = feature_reweighting_model.forward(
+        current_features_upsampled,
+        list_previous_features_warped
+    )
+
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='NSRR Unit testing')
