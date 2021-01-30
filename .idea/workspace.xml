@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5e1a6576-766a-489b-bd62-01d55c17d48d" name="Default Changelist" comment="[Nitpick]: Added some to-do elements.">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/launch.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/unit_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/unit_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +48,7 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/debug.py" />
     <property name="run.code.analysis.last.selected.profile" value="aDefault" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Python" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -104,6 +105,8 @@
       <workItem from="1611093565117" duration="208000" />
       <workItem from="1611147438055" duration="16115000" />
       <workItem from="1611338951835" duration="1386000" />
+      <workItem from="1612006793573" duration="1156000" />
+      <workItem from="1612008811401" duration="478000" />
     </task>
     <task id="LOCAL-00001" summary="[Feature]: Added Layer output model decorator.">
       <created>1610902970409</created>
@@ -194,6 +197,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/pytorch_colors" />
+      <path value="$PROJECT_DIR$/pytorch_hsv" />
+    </ignored-roots>
     <MESSAGE value="[Feature]: Added Layer output model decorator." />
     <MESSAGE value="[Feature]: Added NSRR loss." />
     <MESSAGE value="[Improvement]: Perceptual loss in now a singleton." />
