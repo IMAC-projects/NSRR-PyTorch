@@ -5,6 +5,8 @@ from base import BaseModel
 
 from typing import Union, List, Tuple, Callable, Any
 
+from utils import upsample_zero_2d
+
 
 class NSRRFeatureExtractionModel(BaseModel):
     """
@@ -28,10 +30,10 @@ class NSRRFeatureExtractionModel(BaseModel):
 
     def forward(self, colour_images: torch.Tensor, depth_images: torch.Tensor) -> torch.Tensor:
         # From each 3-channel image and 1-channel image, we construct a 4-channel input for our model.
-        x = torch.cat((colour_images, depth_images), 1)
+        x = torch.cat((colour_images, depth_images), dim=1)
         x_features = self.featuring(x)
         # We concatenate the original input that 'skipped' the network.
-        x = torch.cat((x, x_features), 1)
+        x = torch.cat((x, x_features), dim=1)
         return x
 
 
@@ -157,7 +159,6 @@ class NSRRReconstructionModel(BaseModel):
         self.add_module("decoder_2", decoder2)
         self.add_module("decoder_1", decoder1)
 
-
     def crop_tensor(self, target: torch.Tensor, actual: torch.Tensor) -> torch.Tensor:
         # https://github.com/milesial/Pytorch-UNet/blob/master/unet/unet_parts.py
         diffY = actual.size()[2] - target.size()[2]
@@ -186,6 +187,47 @@ class NSRRReconstructionModel(BaseModel):
         #x = torch.cat((x, x_encoder_1), 1)
         x = self.decoder_1(x)
         return x
+
+
+class Remap(BaseModel):
+    """
+    Basic layer for element-wise remapping of values from one range to another.
+    """
+
+    in_range: Tuple[float, float]
+    out_range: Tuple[float, float]
+
+    def __init__(self,
+                 in_range: Union[Tuple[float, float], List[float]],
+                 out_range: Union[Tuple[float, float], List[float]]
+                 ):
+        assert(len(in_range) == len(out_range) and len(in_range) == 2)
+        super(BaseModel, self).__init__()
+        self.in_range = tuple(in_range)
+        self.out_range = tuple(out_range)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.div(
+            torch.mul(torch.add(x, - self.in_range[0]), self.out_range[1] - self.out_range[0]),
+            (self.in_range[1] - self.in_range[0]) + self.out_range[0])
+
+
+class ZeroUpsample2D(BaseModel):
+    """
+    Basic layer for zero-upsampling of 2D images (4D tensors).
+    """
+
+    scale_factor: Tuple[int, int]
+
+    def __init__(self, scale_factor: Union[Tuple[int, int], List[int], int]):
+        super(ZeroUpsample2D, self).__init__()
+        if type(scale_factor) == int:
+            scale_factor = (scale_factor, scale_factor)
+        assert(len(scale_factor) == 2)
+        self.scale_factor = tuple(scale_factor)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return upsample_zero_2d(x, scale_factor=self.scale_factor)
 
 
 class LayerOutputModelDecorator(BaseModel):
