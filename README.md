@@ -54,7 +54,7 @@ Where `root_dir` is the `data_dir` in `config.json` of `NSRRDataLoader`
 You can remove `-d 1` if you do not have a CUDA-capable GPU.
 
 ```bash
-python3 test.py -c 'config.json' -d 1
+python3 debug.py -c 'config.json' -d 1
 ```
 
 ### Miscellaneous information
