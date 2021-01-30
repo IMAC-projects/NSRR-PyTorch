@@ -5,7 +5,7 @@ from base import BaseModel
 
 from typing import Union, List, Tuple, Callable, Any
 
-from utils import upsample_zero_2d
+from utils import upsample_zero_2d, backward_warp_motion, optical_flow_to_motion
 
 
 class NSRRFeatureExtractionModel(BaseModel):
@@ -228,6 +228,33 @@ class ZeroUpsample2D(BaseModel):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return upsample_zero_2d(x, scale_factor=self.scale_factor)
+
+
+class BackwardWarp(BaseModel):
+    """
+    A model for backward warping 2D image tensors according to motion tensors.
+    """
+
+    def __init__(self):
+        super(BackwardWarp, self).__init__()
+
+    def forward(self, x_image: torch.Tensor, x_motion: torch.Tensor) -> torch.Tensor:
+        return backward_warp_motion(x_image, x_motion)
+
+
+class OpticalFlowToMotion(BaseModel):
+    """
+    A model for computing optical flow to motion vectors conversion, in RGB image tensors.
+    """
+
+    sensitivity: float
+
+    def __init__(self, sensitivity: float):
+        super(BaseModel, self).__init__()
+        self.sensitivity = sensitivity
+
+    def forward(self, x_flow_rgb) -> torch.Tensor:
+        return optical_flow_to_motion(x_flow_rgb, self.sensitivity)
 
 
 class LayerOutputModelDecorator(BaseModel):
