@@ -7,6 +7,18 @@ from typing import Union, List, Tuple, Callable, Any
 
 from utils import upsample_zero_2d, backward_warp_motion, optical_flow_to_motion
 
+class NSRRModel(BaseModel):
+    """
+    """
+
+    def __init__(self):
+        super(NSRRModel, self).__init__()
+        # TODO setup all previous models into this one
+        pass
+
+    def forward(self):
+        # TODO setup all previous models into this one
+        pass
 
 class NSRRFeatureExtractionModel(BaseModel):
     """

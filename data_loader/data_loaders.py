@@ -21,9 +21,9 @@ class NSRRDataLoader(BaseDataLoader):
                  root_dir: str,
                  view_dirname: str,
                  depth_dirname: str,
-                 flow_dirname,
+                 flow_dirname: str,
                  batch_size: int,
-                 suffle: bool = True,
+                 shuffle: bool = True,
                  validation_split: float = 0.0,
                  num_workers: int = 1,
                  downscale_factor: Union[Tuple[int, int], List[int], int] = (2, 2)
@@ -36,7 +36,7 @@ class NSRRDataLoader(BaseDataLoader):
                               )
         super(NSRRDataLoader, self).__init__(dataset=dataset,
                                              batch_size=batch_size,
-                                             shuffle=suffle,
+                                             shuffle=shuffle,
                                              validation_split=validation_split,
                                              num_workers=num_workers,
                                              )
