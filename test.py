@@ -17,8 +17,10 @@ def main(config):
         batch_size=512,
         shuffle=False,
         validation_split=0.0,
-        training=False,
-        num_workers=2
+        num_workers=2,
+        view_dirname="View",
+        depth_dirname="Depth",
+        flow_dirname="Flow"
     )
 
     # build model architecture
