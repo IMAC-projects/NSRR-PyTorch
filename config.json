@@ -28,7 +28,7 @@
             "amsgrad": true
         }
     },
-    "loss": "nll_loss",
+    "loss": "nsrr_loss",
     "metrics": [
         "accuracy", "top_k_acc"
     ],
