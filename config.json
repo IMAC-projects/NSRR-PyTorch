@@ -3,7 +3,7 @@
     "n_gpu": 1,
 
     "arch": {
-        "type": "SuperSampler",
+        "type": "NSRRModel",
         "args": {}
     },
     "data_loader": {
@@ -13,7 +13,11 @@
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
-            "num_workers": 8
+            "num_workers": 8,
+            "view_dirname": "View/",
+            "depth_dirname": "Depth/",
+            "flow_dirname": "Motion/",
+            "downsample": 2
         }
     },
     "optimizer": {
@@ -24,7 +28,7 @@
             "amsgrad": true
         }
     },
-    "loss": "nll_loss",
+    "loss": "nsrr_loss",
     "metrics": [
         "accuracy", "top_k_acc"
     ],

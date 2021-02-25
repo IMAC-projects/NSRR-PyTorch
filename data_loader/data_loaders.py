@@ -8,7 +8,7 @@ import torchvision.transforms as tf
 
 from PIL import Image
 
-from typing import Tuple
+from typing import Union, Tuple, List
 
 from utils import get_downscaled_size
 
@@ -17,27 +17,26 @@ class NSRRDataLoader(BaseDataLoader):
     """
 
     """
-    depth_dirname = "Depth"
-    flow_diname = "Motion"
-    view_dirname = "View"
-
     def __init__(self,
                  root_dir: str,
+                 view_dirname: str,
+                 depth_dirname: str,
+                 flow_dirname: str,
                  batch_size: int,
-                 suffle: bool = True,
+                 shuffle: bool = True,
                  validation_split: float = 0.0,
                  num_workers: int = 1,
-                 downscale_factor: Tuple[int, int] = (2, 2)
+                 downscale_factor: Union[Tuple[int, int], List[int], int] = (2, 2)
                  ):
         dataset = NSRRDataset(root_dir,
-                              view_dirname=NSRRDataLoader.view_dirname,
-                              depth_dirname=NSRRDataLoader.depth_dirname,
-                              flow_dirname=NSRRDataLoader.flow_diname,
+                              view_dirname=view_dirname,
+                              depth_dirname=depth_dirname,
+                              flow_dirname=flow_dirname,
                               downscale_factor=downscale_factor
                               )
         super(NSRRDataLoader, self).__init__(dataset=dataset,
                                              batch_size=batch_size,
-                                             shuffle=suffle,
+                                             shuffle=shuffle,
                                              validation_split=validation_split,
                                              num_workers=num_workers,
                                              )
@@ -52,7 +51,7 @@ class NSRRDataset(Dataset):
                  view_dirname: str,
                  depth_dirname: str,
                  flow_dirname: str,
-                 downscale_factor: Tuple[int, int],
+                 downscale_factor: Union[Tuple[int, int], List[int], int] = (2, 2),
                  transform: nn.Module = None,
                  ):
         super(NSRRDataset, self).__init__()
@@ -62,7 +61,9 @@ class NSRRDataset(Dataset):
         self.depth_dirname = depth_dirname
         self.flow_dirname = flow_dirname
 
-        self.downscale_factor = downscale_factor
+        if type(downscale_factor) == int:
+            downscale_factor = (downscale_factor, downscale_factor)
+        self.downscale_factor = tuple(downscale_factor)
 
         if transform is None:
             self.transform = tf.ToTensor()
