@@ -2,7 +2,7 @@
 
 Create super-resolution images from low-resolution in real time. Non-official implementation of the paper [NSRR](https://research.fb.com/wp-content/uploads/2020/06/Neural-Supersampling-for-Real-time-Rendering.pdf) by Facebook Reality Labs in 2020. A [blog post](https://research.fb.com/blog/2020/07/introducing-neural-supersampling-for-real-time-rendering/) is available with more details.
 
-**This is a work-in-progress, the report about our advances is [available here](doc/report-v1.pdf)**
+**We tried to implement it, but haven't got it to the final steps, the report about our advances is [available here](doc/report-v1.pdf)**
 
 ## Getting started
 
